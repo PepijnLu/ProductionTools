@@ -16,7 +16,13 @@ public class LevelBuilder : MonoBehaviour
     {
         if (Input.GetMouseButton(0)) 
         {
-            CreateTile();
+            Vector3Int cellPosition = GetCellPositionMouse();
+            CreateTile(cellPosition);
+        }
+        if (Input.GetMouseButton(1)) 
+        {
+            Vector3Int cellPosition = GetCellPositionMouse();
+            RemoveTile(cellPosition);
         }
     }
 
@@ -26,11 +32,21 @@ public class LevelBuilder : MonoBehaviour
         UIManager.instance.UpdateSelectedTile(_newSprite);
     }
 
-    void CreateTile()
+    void CreateTile(Vector3Int _cellPosition)
     {
-        Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Vector3Int cellPosition = currentTilemap.WorldToCell(mouseWorldPos);
+        currentTilemap.SetTile(_cellPosition, currentTile);
+        SaveAndLoad.instance.SaveTileData(currentTile.name, _cellPosition, currentTilemap.name);
+    }
 
-        currentTilemap.SetTile(cellPosition, currentTile);
+    void RemoveTile(Vector3Int _cellPosition)
+    {
+        currentTilemap.SetTile(_cellPosition, null);
+        SaveAndLoad.instance.SaveTileData("null", _cellPosition, "null");
+    }
+
+    public Vector3Int GetCellPositionMouse()
+    {
+        Vector2 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        return currentTilemap.WorldToCell(mouseWorldPos);
     }
 }

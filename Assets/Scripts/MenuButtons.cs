@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MenuButtons : MonoBehaviour
 {
@@ -15,4 +16,16 @@ public class MenuButtons : MonoBehaviour
     {
         UIManager.instance.ChangeBlockSelectPange(_increment);
     }
+
+    public void SaveLevel()
+    {
+        SaveAndLoad.instance.SaveLevel("test");
+    }
+
+    public void LoadLevel()
+    {
+        LevelLoaderData.levelName = "test";
+        SceneManager.LoadScene("LevelEditor");
+    }
+    
 }
