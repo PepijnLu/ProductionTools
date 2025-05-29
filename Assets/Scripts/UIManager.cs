@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using System.Reflection;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class UIManager : MonoBehaviour
 {
@@ -13,6 +14,7 @@ public class UIManager : MonoBehaviour
     Dictionary<string, GameObject> uiElementsDict;
     Dictionary<string, Sprite> ruleTilesDefaultSpritesDict;
     Image selectedTile;
+    public bool inMenu;
     [Header("UI Elements")]
     [SerializeField] List<GameObject> uiElements;
     [SerializeField] TextMeshProUGUI selectPanelText;
@@ -36,17 +38,35 @@ public class UIManager : MonoBehaviour
             uiElementsDict.Add(_element.name, _element);
         }   
 
-        SetupAllTileMenus();
+        if(SceneManager.GetActiveScene().name == "LevelEditor") SetupAllTileMenus();
+    }
+
+    void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.Escape))
+        {
+            OpenCloseMenu();
+        }   
     }
 
     public GameObject GetUIElementFromDict(string _element)
     {
-        return uiElementsDict[_element];
+        if(uiElementsDict.ContainsKey(_element)) return uiElementsDict[_element];
+        Debug.LogWarning(_element + " not found in dictionary");
+        return null;
     }
     
     public void ToggleUIElement(GameObject _element, bool _active)
     {
+        if(_element == null) return; 
         _element.SetActive(_active);
+    }
+
+    public void OpenCloseMenu()
+    {
+        GameObject escapeMenu = GetUIElementFromDict("EscapeMenu");
+        ToggleUIElement(escapeMenu, !escapeMenu.activeSelf);
+        inMenu = escapeMenu.activeSelf;
     }
 
     public void UpdateSelectedTile(Sprite _newSprite)
@@ -144,5 +164,24 @@ public class UIManager : MonoBehaviour
             _panel.gameObject.SetActive(false);
         }
         menuPanels.Add(_panel);
+    }
+
+    public string LimitString(string input, int maxLength)
+    {
+        if (string.IsNullOrEmpty(input)) return input;
+        return input.Length <= maxLength ? input : input.Substring(0, maxLength);
+    }
+
+    public void ChangeLevelName(TMP_InputField _name)
+    {
+        Debug.Log($"New Level Name: {_name}");
+        if(_name.text == "")
+        {
+            GetUIElementFromDict("PickName").SetActive(true);
+        }
+        else
+        {
+            GetUIElementFromDict("PickName").SetActive(false);
+        }
     }
 }

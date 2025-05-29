@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 public static class LevelLoaderData
 {
-    public static string levelName;
+    public static string loadedLevelName = "";
 }
 public class LevelData
 {
@@ -42,10 +43,9 @@ public class SaveAndLoad : MonoBehaviour
 
         LoadAllTilePrefabs("Tiles");
 
-        if(LevelLoaderData.levelName != null)
+        if(LevelLoaderData.loadedLevelName != null)
         {
-            LoadAndBuild(LevelLoaderData.levelName);
-            LevelLoaderData.levelName = null;
+            LoadAndBuild(LevelLoaderData.loadedLevelName + ".json");
         }
     }
 
@@ -74,30 +74,24 @@ public class SaveAndLoad : MonoBehaviour
 
     public void SaveTileData(string _tileBase, Vector3Int _position, string _tileMap)
     {
-        /*
-        Creating new tile data works completely fine
-        Updating or removing existing tile data doesnt always work
-        Check if it always doesnt work or if it has something to do with starting from new vs. editing loaded level
-        */
         if(tileDataByPosition.ContainsKey(_position))
         {
             TileData dataToUpdate = tileDataByPosition[_position];
 
-            if(dataToUpdate.tileMap == _tileMap)
+            Debug.Log($"Passed tilemap check");
+            if(_tileBase == "null")
             {
-                if(_tileBase == "null")
-                {
-                    tileDataByPosition.Remove(_position);
-                    levelData.tiles.Remove(dataToUpdate);
-                }
-                else
-                {
-                    dataToUpdate.tileType = _tileBase;
-                    dataToUpdate.position = _position;
-                }
+                Debug.Log($"Removing Tile from LevelData at {_position}");
+                tileDataByPosition.Remove(_position);
+                levelData.tiles.Remove(dataToUpdate);
+                return;
             }
-
-            return;
+            else
+            {
+                tileDataByPosition.Remove(_position);
+                levelData.tiles.Remove(dataToUpdate);
+            }
+        
         }
 
         TileData newTileData = new()
@@ -109,14 +103,17 @@ public class SaveAndLoad : MonoBehaviour
 
         levelData.tiles.Add(newTileData);
         tileDataByPosition.Add(_position, newTileData);
-        
-        //Debug.Log($"Saving Tile Data: Tile: {_tileBase.name}, Position: {_position}, Tilemap: {_tileMap}");
     }
 
-    public void SaveLevel(string fileName)
+    public void SaveLevel(string _levelName)
     {
+        if(LevelLoaderData.loadedLevelName == "")
+        {
+
+        }
+
         string json = JsonConvert.SerializeObject(levelData, Formatting.Indented);
-        string path = Path.Combine(Application.persistentDataPath, fileName + ".json");
+        string path = Path.Combine(Application.persistentDataPath, _levelName + ".json");
 
         if (File.Exists(path))
         {
@@ -135,7 +132,7 @@ public class SaveAndLoad : MonoBehaviour
 
     public LevelData LoadLevel(string fileName)
     {
-        string path = Path.Combine(Application.persistentDataPath, fileName + ".json");
+        string path = Path.Combine(Application.persistentDataPath, fileName);
         if (!File.Exists(path))
         {
             Debug.LogWarning("File not found: " + path);
@@ -148,6 +145,8 @@ public class SaveAndLoad : MonoBehaviour
 
     public void BuildLevel(LevelData level)
     {
+        if(level == null) return;
+
         foreach (TileData tile in level.tiles)
         {
             if (tilePrefabs.TryGetValue(tile.tileType, out TileBase _tileBase))
