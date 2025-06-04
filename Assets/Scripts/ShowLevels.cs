@@ -15,7 +15,6 @@ public class ShowLevels : MonoBehaviour
     void Start()
     {
         loadingLevel = false;
-        LevelLoaderData.loadedLevelName = "";
         loadedLevels = GetJsonFileNames(Application.persistentDataPath);
 
         foreach (string _level in loadedLevels)
@@ -25,7 +24,16 @@ public class ShowLevels : MonoBehaviour
             //Remove .json from the text
             string _levelName = _level.Substring(0, _level.Length - 5);
             newButton.levelName.text = _levelName;
+            //Load thumbnail
+            Texture2D thumbnail = LoadThumbnail(_levelName + ".png");
+            if(thumbnail != null)
+            {
+                Sprite sprite = Sprite.Create(thumbnail, new Rect(0, 0, thumbnail.width, thumbnail.height), new Vector2(0.5f, 0.5f));
+                newButton.thumbnailImg.sprite = sprite;
+            }
+            
         }
+        LevelLoaderData.loadedLevelName = "";
     }
 
     public static List<string> GetJsonFileNames(string folderPath)
@@ -48,34 +56,51 @@ public class ShowLevels : MonoBehaviour
         return jsonFileNames;
     }
 
-    public void SelectLevel(ChooseLevelButton _button)
+    public Texture2D LoadThumbnail(string fileName)
     {
-        bool _disabled = false;
-        //Disable dropdown if pressed while dropped down
-        if(currentActiveDropdown != null)
+        string path = Path.Combine(Application.persistentDataPath, fileName);
+
+        if (!File.Exists(path))
         {
-            if(currentActiveDropdown == _button)
-            {
-                currentActiveDropdown.dropDown.SetActive(false);
-                currentActiveDropdown = null;
-                _disabled = true;
-            }
-            
-            //Disable the previous one
-            if(currentActiveDropdown != null)
-            {
-                currentActiveDropdown.dropDown.SetActive(false);
-                currentActiveDropdown = null;
-            }
+            Debug.LogWarning("Thumbnail not found: " + path);
+            return null;
         }
 
-        //Enable the new one
-        if(!_disabled)
-        {
-            currentActiveDropdown = _button;
-            currentActiveDropdown.dropDown.SetActive(true);
-        }
+        byte[] fileData = File.ReadAllBytes(path);
+        Texture2D tex = new Texture2D(2, 2); // Size will be overwritten
+        tex.LoadImage(fileData); // Load the PNG data
+        return tex;
     }
+    
+
+    // public void SelectLevel(ChooseLevelButton _button)
+    // {
+    //     bool _disabled = false;
+    //     //Disable dropdown if pressed while dropped down
+    //     if(currentActiveDropdown != null)
+    //     {
+    //         if(currentActiveDropdown == _button)
+    //         {
+    //             currentActiveDropdown.dropDown.SetActive(false);
+    //             currentActiveDropdown = null;
+    //             _disabled = true;
+    //         }
+            
+    //         //Disable the previous one
+    //         if(currentActiveDropdown != null)
+    //         {
+    //             currentActiveDropdown.dropDown.SetActive(false);
+    //             currentActiveDropdown = null;
+    //         }
+    //     }
+
+    //     //Enable the new one
+    //     if(!_disabled)
+    //     {
+    //         currentActiveDropdown = _button;
+    //         currentActiveDropdown.dropDown.SetActive(true);
+    //     }
+    // }
 
     public void LoadLevel(string _levelName)
     {

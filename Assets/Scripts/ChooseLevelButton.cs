@@ -1,17 +1,30 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
-public class ChooseLevelButton : MonoBehaviour
+public class ChooseLevelButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     public ShowLevels showLevels;
-    public GameObject dropDown;
+    public GameObject buttons;
     public TextMeshProUGUI levelName;
+    public Image thumbnailImg;
 
-    public void SelectLevel()
+    public void OnPointerEnter(PointerEventData eventData)
     {
-        showLevels.SelectLevel(this);
+        buttons.SetActive(true);
     }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        buttons.SetActive(false);
+    }
+
+    // public void SelectLevel()
+    // {
+    //     showLevels.SelectLevel(this);
+    // }
 
     public void LoadLevel()
     {

@@ -12,8 +12,8 @@ public static class LevelLoaderData
 public class LevelData
 {
     public string levelName;
-    public Vector2Int levelSize;
     public List<TileData> tiles = new();
+    public bool isCleared;
 }
 
 public struct TileData
@@ -30,6 +30,9 @@ public class SaveAndLoad : MonoBehaviour
     LevelData levelData;
     Dictionary<string, TileBase> tilePrefabs;
     Dictionary<string, Tilemap> tilemaps;
+    [SerializeField] Camera thumbnailCamera;
+    [SerializeField] RenderTexture thumbnailRT;
+    [SerializeField] GridRenderer gridRenderer;
 
     void Awake()
     {
@@ -107,10 +110,7 @@ public class SaveAndLoad : MonoBehaviour
 
     public void SaveLevel(string _levelName)
     {
-        if(LevelLoaderData.loadedLevelName == "")
-        {
-
-        }
+        if(LevelLoaderData.loadedLevelName == "") return;
 
         string json = JsonConvert.SerializeObject(levelData, Formatting.Indented);
         string path = Path.Combine(Application.persistentDataPath, _levelName + ".json");
@@ -122,6 +122,14 @@ public class SaveAndLoad : MonoBehaviour
 
         File.WriteAllText(path, json);
         Debug.Log("Level saved to " + path);
+
+        gridRenderer.gameObject.SetActive(false);
+        Texture2D thumbnail = CaptureThumbnail(thumbnailCamera, thumbnailRT);
+        byte[] bytes = thumbnail.EncodeToPNG();
+
+        string thumbnailPath = Path.Combine(Application.persistentDataPath, _levelName + ".png");
+        File.WriteAllBytes(thumbnailPath, bytes);
+        gridRenderer.gameObject.SetActive(true);
     }
 
     public void LoadAndBuild(string fileName)
@@ -163,5 +171,24 @@ public class SaveAndLoad : MonoBehaviour
                 Debug.LogWarning("Unknown tile type: " + tile.tileType);
             }
         }
+    }
+
+    public Texture2D CaptureThumbnail(Camera _thumbnailCamera, RenderTexture _renderTexture)
+    {
+        RenderTexture currentRT = RenderTexture.active;
+
+        _thumbnailCamera.targetTexture = _renderTexture;
+        RenderTexture.active = _renderTexture;
+
+        _thumbnailCamera.Render();
+
+        Texture2D image = new Texture2D(_renderTexture.width, _renderTexture.height, TextureFormat.RGB24, false);
+        image.ReadPixels(new Rect(0, 0, _renderTexture.width, _renderTexture.height), 0, 0);
+        image.Apply();
+
+        RenderTexture.active = currentRT;
+        _thumbnailCamera.targetTexture = null;
+
+        return image;
     }
 }
