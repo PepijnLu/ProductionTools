@@ -5,6 +5,9 @@ using UnityEngine.SceneManagement;
 
 public class MenuButtons : MonoBehaviour
 {
+    [SerializeField] LevelBuilder levelBuilder;
+    [SerializeField] PlayerController playerController;
+    [SerializeField] GridRenderer gridRenderer;
     public void ToggleBlockSelecter()
     {
 
@@ -31,6 +34,11 @@ public class MenuButtons : MonoBehaviour
     public void LoadLevel()
     {
         SceneManager.LoadScene("LevelEditor");
+    }
+
+    public void LoadMainMenu()
+    {
+        SceneManager.LoadScene("MainMenu");
     }
 
     public void LoadScene(string _sceneName)
@@ -82,6 +90,29 @@ public class MenuButtons : MonoBehaviour
 
         editMenu.SetActive(_edit);
         createMenu.SetActive(!_edit);
+    }
+
+    public void StartLevelClearing(bool _start)
+    {
+        GameObject selectedBlockButton = UIManager.instance.GetUIElementFromDict("SelectedBlockButton");
+        GameObject blockSelect = UIManager.instance.GetUIElementFromDict("BlockSelect");
+        GameObject escapeMenu = UIManager.instance.GetUIElementFromDict("EscapeMenu");
+
+        escapeMenu.SetActive(false);
+
+        GameObject initialEscapeMenu = UIManager.instance.GetUIElementFromDict("InitialEscMenu");
+        GameObject clearingEscapeMenu = UIManager.instance.GetUIElementFromDict("ClearingEscMenu");
+
+        initialEscapeMenu.SetActive(!_start);
+        clearingEscapeMenu.SetActive(_start);
+
+        selectedBlockButton.SetActive(!_start);
+        blockSelect.SetActive(false);
+
+        gridRenderer.gameObject.SetActive(!_start);
+    
+        levelBuilder.enabled = !_start;;
+        playerController.enabled = _start;
     }
  
 }

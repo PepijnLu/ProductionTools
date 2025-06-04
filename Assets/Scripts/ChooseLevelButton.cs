@@ -9,7 +9,7 @@ public class ChooseLevelButton : MonoBehaviour, IPointerEnterHandler, IPointerEx
     public ShowLevels showLevels;
     public GameObject buttons;
     public TextMeshProUGUI levelName;
-    public Image thumbnailImg;
+    public Image thumbnailImg, clearedImg;
 
     public void OnPointerEnter(PointerEventData eventData)
     {

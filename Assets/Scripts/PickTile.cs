@@ -8,10 +8,11 @@ public class PickTile : MonoBehaviour
     public Image borderImage, tileImage;
     public TileBase _tileToPick;
     public Sprite _newSprite;
+    public string tilemap;
 
     public void ChooseNewTile()
     {
         if(levelBuilder == null) levelBuilder = FindFirstObjectByType<LevelBuilder>();
-        levelBuilder.PickNewTile(_tileToPick, _newSprite);
+        levelBuilder.PickNewTile(_tileToPick, _newSprite, tilemap);
     }
 }

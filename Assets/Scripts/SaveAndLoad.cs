@@ -14,6 +14,7 @@ public class LevelData
     public string levelName;
     public List<TileData> tiles = new();
     public bool isCleared;
+    public float playerStartX = 2.5f, playerStartY = 2.5f;
 }
 
 public struct TileData
@@ -25,6 +26,7 @@ public struct TileData
 
 public class SaveAndLoad : MonoBehaviour
 {
+    [SerializeField] string levelToLoadDebug;
     Dictionary<Vector3Int, TileData> tileDataByPosition = new();
     public static SaveAndLoad instance;
     LevelData levelData;
@@ -33,23 +35,29 @@ public class SaveAndLoad : MonoBehaviour
     [SerializeField] Camera thumbnailCamera;
     [SerializeField] RenderTexture thumbnailRT;
     [SerializeField] GridRenderer gridRenderer;
+    [SerializeField] GameObject player;
+    [SerializeField] Vector2 playerStartPosition;
 
     void Awake()
     {
         instance = this;
-    }
-    void Start()
-    {
         levelData = new();
         tilePrefabs = new();
         tilemaps = new();
 
         LoadAllTilePrefabs("Tiles");
 
-        if(LevelLoaderData.loadedLevelName != null)
+        if(LevelLoaderData.loadedLevelName != "")
         {
             LoadAndBuild(LevelLoaderData.loadedLevelName + ".json");
         }
+        else if(levelToLoadDebug != "")
+        {
+            LoadAndBuild(levelToLoadDebug + ".json");
+        }
+    }
+    void Start()
+    {
     }
 
     void LoadAllTilePrefabs(string folder)
@@ -108,9 +116,14 @@ public class SaveAndLoad : MonoBehaviour
         tileDataByPosition.Add(_position, newTileData);
     }
 
-    public void SaveLevel(string _levelName)
+    public void SaveLevel(string _levelName, bool _isCleared = false)
     {
+        playerStartPosition = new Vector2(player.transform.position.x, player.transform.position.y);
         if(LevelLoaderData.loadedLevelName == "") return;
+
+        levelData.isCleared = _isCleared;
+        levelData.playerStartX = playerStartPosition.x;
+        levelData.playerStartX = playerStartPosition.y;
 
         string json = JsonConvert.SerializeObject(levelData, Formatting.Indented);
         string path = Path.Combine(Application.persistentDataPath, _levelName + ".json");
@@ -171,6 +184,17 @@ public class SaveAndLoad : MonoBehaviour
                 Debug.LogWarning("Unknown tile type: " + tile.tileType);
             }
         }
+        player.transform.position = new Vector2(level.playerStartX, level.playerStartY);
+    }
+
+    public void StopClearingLevel()
+    {
+        player.transform.position = playerStartPosition;
+    }
+
+    public void ClearLevel()
+    {
+        SaveLevel(LevelLoaderData.loadedLevelName, true);
     }
 
     public Texture2D CaptureThumbnail(Camera _thumbnailCamera, RenderTexture _renderTexture)

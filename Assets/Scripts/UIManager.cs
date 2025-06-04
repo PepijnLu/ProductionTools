@@ -132,6 +132,7 @@ public class UIManager : MonoBehaviour
             PickTile newTilePicker = Instantiate(baseTilePicker, _panel);
             Image borderImage = newTilePicker.borderImage;
             Image tileImage = newTilePicker.tileImage;
+            newTilePicker.tilemap = _panel.gameObject.name;
 
             Tile tile = _tile as Tile;
 

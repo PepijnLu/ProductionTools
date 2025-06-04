@@ -7,13 +7,27 @@ using UnityEngine.UI;
 public class LevelBuilder : MonoBehaviour
 {
     [SerializeField] Tilemap currentTilemap;
+    [SerializeField] Tilemap solidTileMap, triggerTilemap, startingTilemap;
     [SerializeField] TileBase currentTile;
+    Dictionary<string, Tilemap> tilemaps;
     List<Vector3Int> touchedCellPositions = new();
     bool leftMouseDown, rightMouseDown; 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        currentTilemap = solidTileMap;
+
+        tilemaps = new()
+        {
+            ["Base Blocks"] = solidTileMap,
+            ["Items"] = triggerTilemap,
+        };
+
+        foreach (Transform _child in startingTilemap.transform)
+        {
+            Vector3Int cellPosition = startingTilemap.WorldToCell(_child.position);
+            CreateTile(cellPosition, startingTilemap);
+        }
     }
 
     // Update is called once per frame
@@ -33,7 +47,7 @@ public class LevelBuilder : MonoBehaviour
             if(!touchedCellPositions.Contains(cellPosition)) 
             {
                 touchedCellPositions.Add(cellPosition);
-                CreateTile(cellPosition);
+                CreateTile(cellPosition, currentTilemap);
             }
         }
         else if (rightMouseDown)
@@ -65,22 +79,26 @@ public class LevelBuilder : MonoBehaviour
 
     }
 
-    public void PickNewTile(TileBase _newTile, Sprite _newSprite)
+    public void PickNewTile(TileBase _newTile, Sprite _newSprite, string _tilemap)
     {
         currentTile = _newTile;
         UIManager.instance.UpdateSelectedTile(_newSprite);
+        currentTilemap = tilemaps[_tilemap];
     }
 
-    void CreateTile(Vector3Int _cellPosition)
+    void CreateTile(Vector3Int _cellPosition, Tilemap _tilemap)
     {
-        currentTilemap.SetTile(_cellPosition, currentTile);
-        SaveAndLoad.instance.SaveTileData(currentTile.name, _cellPosition, currentTilemap.name);
+        _tilemap.SetTile(_cellPosition, currentTile);
+        SaveAndLoad.instance.SaveTileData(currentTile.name, _cellPosition, _tilemap.name);
     }
 
     void RemoveTile(Vector3Int _cellPosition)
     {
-        currentTilemap.SetTile(_cellPosition, null);
-        SaveAndLoad.instance.SaveTileData("null", _cellPosition, "null");
+        foreach(var kvp in tilemaps)
+        {
+            kvp.Value.SetTile(_cellPosition, null);
+            SaveAndLoad.instance.SaveTileData("null", _cellPosition, kvp.Value.gameObject.name);
+        }
     }
 
     public Vector3Int GetCellPositionMouse()

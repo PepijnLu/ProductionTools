@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -24,6 +25,13 @@ public class ShowLevels : MonoBehaviour
             //Remove .json from the text
             string _levelName = _level.Substring(0, _level.Length - 5);
             newButton.levelName.text = _levelName;
+
+            //Check if cleared
+            string path = Path.Combine(Application.persistentDataPath, _level);
+            string json = File.ReadAllText(path);
+            LevelData _data = JsonConvert.DeserializeObject<LevelData>(json);
+            newButton.clearedImg.gameObject.SetActive(_data.isCleared);
+            
             //Load thumbnail
             Texture2D thumbnail = LoadThumbnail(_levelName + ".png");
             if(thumbnail != null)
@@ -31,7 +39,6 @@ public class ShowLevels : MonoBehaviour
                 Sprite sprite = Sprite.Create(thumbnail, new Rect(0, 0, thumbnail.width, thumbnail.height), new Vector2(0.5f, 0.5f));
                 newButton.thumbnailImg.sprite = sprite;
             }
-            
         }
         LevelLoaderData.loadedLevelName = "";
     }
