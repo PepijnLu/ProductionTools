@@ -1,0 +1,4 @@
+-fix play thing and add delete button for it
+-save and quit should go to edit
+-clear should start with clearing
+-fix name check in uploading levels

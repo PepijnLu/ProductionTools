@@ -34,6 +34,9 @@ public class ShowLevels : MonoBehaviour
 
         //Load correct menu
         UIManager.instance.ToggleUIElement(SceneData.menuToLoad, true);
+
+        if(SceneData.levelsToLoad == "Play") LoadLevels(false);
+        if(SceneData.levelsToLoad == "Edit") LoadLevels(true);
     }
     public void LoadLevels(bool _edit)
     {
@@ -50,8 +53,6 @@ public class ShowLevels : MonoBehaviour
         {
             Debug.Log($"Level found: {_level}");
 
-            //path = Path.Combine(path, _level);
-
             string json = File.ReadAllText(Path.Combine(path, _level));
             LevelData _data = JsonConvert.DeserializeObject<LevelData>(json);
             bool levelCleared = _data.isCleared;
@@ -59,24 +60,15 @@ public class ShowLevels : MonoBehaviour
 
             
             //Instantiate new level object
-            ChooseLevelButton newButton = Instantiate(chooseLevelButtonPrefab, gridLayout.transform);
-            //Fetch the level name
-            string _levelName = _data.levelName;
+            ChooseLevelButton newButton = UIManager.instance.InstantiateLevelObject(gridLayout.transform, _data.levelName);
             //Check if the level has been beaten/cleared
             if(_edit) beatenOrCleared = _data.isBeaten;
             else beatenOrCleared = levelCleared;
             //Set the right icons/references on the object
-            newButton.SetCorrectIcons(_edit, _levelName, beatenOrCleared, this);
+            newButton.SetCorrectIcons(_edit, beatenOrCleared, this);
             //Add it to the list for clearing later
             loadedLevelButtons.Add(newButton.gameObject);
 
-            //Load thumbnail
-            Texture2D thumbnail = LoadThumbnail(path, _levelName + ".png");
-            if(thumbnail != null)
-            {
-                Sprite sprite = Sprite.Create(thumbnail, new Rect(0, 0, thumbnail.width, thumbnail.height), new Vector2(0.5f, 0.5f));
-                newButton.thumbnailImg.sprite = sprite;
-            }
             loadedButtons++;
             
         }
@@ -124,22 +116,6 @@ public class ShowLevels : MonoBehaviour
         return jsonFileNames;
     }
 
-    public Texture2D LoadThumbnail(string _path, string _fileName)
-    {
-        string path = Path.Combine(_path, _fileName);
-
-        if (!File.Exists(path))
-        {
-            Debug.LogWarning("Thumbnail not found: " + path);
-            return null;
-        }
-
-        byte[] fileData = File.ReadAllBytes(path);
-        Texture2D tex = new Texture2D(2, 2); // Size will be overwritten
-        tex.LoadImage(fileData); // Load the PNG data
-        return tex;
-    }
-
     public void LoadLevel(string _levelName)
     {
         if(loadingLevel) return;
@@ -161,15 +137,7 @@ public class ShowLevels : MonoBehaviour
             deletingLevel = true;
             UIManager.instance.ToggleUIElement("DeleteLevel?", true);
 
-            ChooseLevelButton newButton = Instantiate(chooseLevelButtonPrefab, deleteLevel.transform);
-            newButton.levelName.text = _levelName;
-
-            Texture2D thumbnail = LoadThumbnail(editPath, _levelName + ".png");
-            if(thumbnail != null)
-            {
-                Sprite sprite = Sprite.Create(thumbnail, new Rect(0, 0, thumbnail.width, thumbnail.height), new Vector2(0.5f, 0.5f));
-                newButton.thumbnailImg.sprite = sprite;
-            }
+            ChooseLevelButton newButton = UIManager.instance.InstantiateLevelObject(deleteLevel, _levelName);
 
             while(confirmDelete == -1)
             {
@@ -182,7 +150,7 @@ public class ShowLevels : MonoBehaviour
                 string thumbnailFileName = _levelName + ".png";
 
                 string jsonPath = Path.Combine(Application.persistentDataPath, "Levels", "Edit", jsonFileName);
-                string thumbnailPath = Path.Combine(Application.persistentDataPath, "Levels", "Edit", thumbnailFileName);
+                string thumbnailPath = Path.Combine(Application.persistentDataPath, "Levels", "Thumbnails", thumbnailFileName);
 
                 //Delete json file
                 if (File.Exists(jsonPath)) File.Delete(jsonPath);

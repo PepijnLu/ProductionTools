@@ -36,9 +36,18 @@ public class MenuButtons : MonoBehaviour
         SceneManager.LoadScene("LevelEditor");
     }
 
+    public void SetMenuToLoad(string _menuToLoad)
+    {
+        SceneData.menuToLoad = _menuToLoad;
+    }
+
+    public void SetLevelsToLoad(string _levels)
+    {
+        SceneData.levelsToLoad = _levels;
+    }
+
     public void LoadScene(string _sceneName)
     {
-        if(_sceneName == "MainMenu") SceneData.menuToLoad = "Create";
         SceneManager.LoadScene(_sceneName);
     }
 
@@ -83,7 +92,6 @@ public class MenuButtons : MonoBehaviour
     {
         UIManager.instance.ToggleUIElement("Play/Edit", _play);
         UIManager.instance.ToggleUIElement("MainMenu", !_play);
-        //showLevels.LoadLevels(true);
 
         if(_play) showLevels.LoadLevels(false);
         else showLevels.UnloadLevels();
@@ -93,7 +101,6 @@ public class MenuButtons : MonoBehaviour
     {
         UIManager.instance.ToggleUIElement("Play/Edit", _edit);
         UIManager.instance.ToggleUIElement("Create", !_edit);
-        //showLevels.LoadLevels(false);
 
         if(_edit) showLevels.LoadLevels(true);
         else showLevels.UnloadLevels();

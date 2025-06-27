@@ -2885,6 +2885,7 @@ MonoBehaviour:
   textElements:
   - {fileID: 1819918942}
   selectPanelText: {fileID: 0}
+  chooseLevelButtonPrefab: {fileID: 3404257496675831525, guid: faade3ba7751a39429d4117fd4936ba2, type: 3}
   panelLeftArrow: {fileID: 0}
   panelRightArrow: {fileID: 0}
   groundTiles: []

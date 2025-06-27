@@ -13,10 +13,9 @@ public class ChooseLevelButton : MonoBehaviour, IPointerEnterHandler, IPointerEx
     public Image thumbnailImg, clearedImg, beatenImg;
     public Color clearedColor, beatenColor;
 
-    public void SetCorrectIcons(bool _edit, string _levelName, bool clearedOrBeaten, ShowLevels _showLevels)
+    public void SetCorrectIcons(bool _edit, bool clearedOrBeaten, ShowLevels _showLevels)
     {
         showLevels = _showLevels;
-        levelName.text = _levelName;
 
         //From the edit meun
         if(_edit) 

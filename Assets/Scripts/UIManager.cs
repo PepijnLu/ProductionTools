@@ -6,6 +6,7 @@ using System.Reflection;
 using TMPro;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using System.IO;
 
 public class UIManager : MonoBehaviour
 {
@@ -21,6 +22,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] List<GameObject> uiElements;
     [SerializeField] List<TextMeshProUGUI> textElements;
     [SerializeField] TextMeshProUGUI selectPanelText;
+    [SerializeField] ChooseLevelButton chooseLevelButtonPrefab;
     [SerializeField] Image panelLeftArrow;
     [SerializeField] Image panelRightArrow;
     [Header("Tiles")]
@@ -178,6 +180,39 @@ public class UIManager : MonoBehaviour
             _panel.gameObject.SetActive(false);
         }
         menuPanels.Add(_panel);
+    }
+
+    public ChooseLevelButton InstantiateLevelObject(Transform _levelTransform, string _levelName)
+    {
+        ChooseLevelButton newButton = Instantiate(chooseLevelButtonPrefab, _levelTransform);
+        newButton.levelName.text = _levelName;
+
+        string path = Path.Combine(Application.persistentDataPath, "Levels", "Thumbnails");
+        Texture2D thumbnail = LoadThumbnail(path, _levelName + ".png");
+        if(thumbnail != null)
+        {
+            Sprite sprite = Sprite.Create(thumbnail, new Rect(0, 0, thumbnail.width, thumbnail.height), new Vector2(0.5f, 0.5f));
+            newButton.thumbnailImg.sprite = sprite;
+        }
+
+        newButton.gameObject.SetActive(true);
+        return newButton;
+    }
+
+    public Texture2D LoadThumbnail(string _path, string _fileName)
+    {
+        string path = Path.Combine(_path, _fileName);
+
+        if (!File.Exists(path))
+        {
+            Debug.LogWarning("Thumbnail not found: " + path);
+            return null;
+        }
+
+        byte[] fileData = File.ReadAllBytes(path);
+        Texture2D tex = new Texture2D(2, 2); // Size will be overwritten
+        tex.LoadImage(fileData); // Load the PNG data
+        return tex;
     }
 
     public IEnumerator ShowTextForSeconds(string _element, string _text, float duration)
