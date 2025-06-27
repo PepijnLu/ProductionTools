@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
@@ -10,37 +11,97 @@ public class ShowLevels : MonoBehaviour
     List<string> loadedLevels = new();
     [SerializeField] ChooseLevelButton chooseLevelButtonPrefab;
     [SerializeField] ChooseLevelButton currentActiveDropdown;
-    [SerializeField] Transform gridLayout;
+    // [SerializeField] Transform editGridLayout, playGridLayout;
+    // [SerializeField] ScrollRect editScrollRect, playScrollRect; 
+    [SerializeField] RectTransform editContent;
+    [SerializeField] List<GameObject> loadedLevelButtons = new();
+    [SerializeField] GridLayoutGroup gridLayout;
+    [SerializeField] ScrollRect scrollRect;
+    [SerializeField] Transform deleteLevel;
     public static bool loadingLevel;
+    string editPath, playPath;
+    int confirmDelete = -1;
+    bool deletingLevel;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        //Initialize directories
+        editPath = Path.Combine(Application.persistentDataPath, "Levels", "Edit");
+        playPath = Path.Combine(Application.persistentDataPath, "Levels", "Play");
+
+        if (!Directory.Exists(editPath)) Directory.CreateDirectory(editPath);
+        if (!Directory.Exists(playPath)) Directory.CreateDirectory(playPath);
+
+        //Load correct menu
+        UIManager.instance.ToggleUIElement(SceneData.menuToLoad, true);
+    }
+    public void LoadLevels(bool _edit)
+    {
         loadingLevel = false;
-        loadedLevels = GetJsonFileNames(Application.persistentDataPath);
+        string path;
+
+        if(_edit) path = editPath;
+        else path = playPath;
+
+        loadedLevels = GetJsonFileNames(path);
+        int loadedButtons = 0;
 
         foreach (string _level in loadedLevels)
         {
-            ChooseLevelButton newButton = Instantiate(chooseLevelButtonPrefab, gridLayout);
-            newButton.showLevels = this;
-            //Remove .json from the text
-            string _levelName = _level.Substring(0, _level.Length - 5);
-            newButton.levelName.text = _levelName;
+            Debug.Log($"Level found: {_level}");
 
-            //Check if cleared
-            string path = Path.Combine(Application.persistentDataPath, _level);
-            string json = File.ReadAllText(path);
+            //path = Path.Combine(path, _level);
+
+            string json = File.ReadAllText(Path.Combine(path, _level));
             LevelData _data = JsonConvert.DeserializeObject<LevelData>(json);
-            newButton.clearedImg.gameObject.SetActive(_data.isCleared);
+            bool levelCleared = _data.isCleared;
+            bool beatenOrCleared = false;
+
             
+            //Instantiate new level object
+            ChooseLevelButton newButton = Instantiate(chooseLevelButtonPrefab, gridLayout.transform);
+            //Fetch the level name
+            string _levelName = _data.levelName;
+            //Check if the level has been beaten/cleared
+            if(_edit) beatenOrCleared = _data.isBeaten;
+            else beatenOrCleared = levelCleared;
+            //Set the right icons/references on the object
+            newButton.SetCorrectIcons(_edit, _levelName, beatenOrCleared, this);
+            //Add it to the list for clearing later
+            loadedLevelButtons.Add(newButton.gameObject);
+
             //Load thumbnail
-            Texture2D thumbnail = LoadThumbnail(_levelName + ".png");
+            Texture2D thumbnail = LoadThumbnail(path, _levelName + ".png");
             if(thumbnail != null)
             {
                 Sprite sprite = Sprite.Create(thumbnail, new Rect(0, 0, thumbnail.width, thumbnail.height), new Vector2(0.5f, 0.5f));
                 newButton.thumbnailImg.sprite = sprite;
             }
+            loadedButtons++;
+            
         }
-        LevelLoaderData.loadedLevelName = "";
+        
+        if(loadedButtons > 10) gridLayout.padding.left = 4;
+        else gridLayout.padding.left = 12;
+        
+        Canvas.ForceUpdateCanvases();
+        LayoutRebuilder.ForceRebuildLayoutImmediate(editContent);
+        scrollRect.verticalNormalizedPosition = 1f;
+
+        SceneData.loadedLevelName = "";
+    }
+
+    public void UnloadLevels()
+    {
+        Debug.Log("Unloading levels");
+        foreach (GameObject obj in loadedLevelButtons)
+        {
+            if (obj != null)
+            {
+                Destroy(obj);
+            }
+        }
+        loadedLevelButtons.Clear();
     }
 
     public static List<string> GetJsonFileNames(string folderPath)
@@ -63,9 +124,9 @@ public class ShowLevels : MonoBehaviour
         return jsonFileNames;
     }
 
-    public Texture2D LoadThumbnail(string fileName)
+    public Texture2D LoadThumbnail(string _path, string _fileName)
     {
-        string path = Path.Combine(Application.persistentDataPath, fileName);
+        string path = Path.Combine(_path, _fileName);
 
         if (!File.Exists(path))
         {
@@ -78,59 +139,69 @@ public class ShowLevels : MonoBehaviour
         tex.LoadImage(fileData); // Load the PNG data
         return tex;
     }
-    
-
-    // public void SelectLevel(ChooseLevelButton _button)
-    // {
-    //     bool _disabled = false;
-    //     //Disable dropdown if pressed while dropped down
-    //     if(currentActiveDropdown != null)
-    //     {
-    //         if(currentActiveDropdown == _button)
-    //         {
-    //             currentActiveDropdown.dropDown.SetActive(false);
-    //             currentActiveDropdown = null;
-    //             _disabled = true;
-    //         }
-            
-    //         //Disable the previous one
-    //         if(currentActiveDropdown != null)
-    //         {
-    //             currentActiveDropdown.dropDown.SetActive(false);
-    //             currentActiveDropdown = null;
-    //         }
-    //     }
-
-    //     //Enable the new one
-    //     if(!_disabled)
-    //     {
-    //         currentActiveDropdown = _button;
-    //         currentActiveDropdown.dropDown.SetActive(true);
-    //     }
-    // }
 
     public void LoadLevel(string _levelName)
     {
         if(loadingLevel) return;
-        LevelLoaderData.loadedLevelName = _levelName;
+        SceneData.loadedLevelName = _levelName;
         loadingLevel = true;
         SceneManager.LoadScene("LevelEditor");
     }
 
-    public void DeleteLevel(ChooseLevelButton _button, string _fileName)
+    public void ConfirmDelete(bool _confirm)
     {
-        string path = Path.Combine(Application.persistentDataPath, _fileName);
+        if(_confirm) confirmDelete = 1;
+        else confirmDelete = 0;
+    }
 
-        if (File.Exists(path))
+    public IEnumerator DeleteLevel(ChooseLevelButton _button, string _levelName)
+    {
+        if(!deletingLevel)
         {
-            File.Delete(path);
-            UnityEngine.Debug.Log("File deleted successfully.");
-        }
-        else
-        {
-            UnityEngine.Debug.LogWarning("File not found: " + path);
+            deletingLevel = true;
+            UIManager.instance.ToggleUIElement("DeleteLevel?", true);
+
+            ChooseLevelButton newButton = Instantiate(chooseLevelButtonPrefab, deleteLevel.transform);
+            newButton.levelName.text = _levelName;
+
+            Texture2D thumbnail = LoadThumbnail(editPath, _levelName + ".png");
+            if(thumbnail != null)
+            {
+                Sprite sprite = Sprite.Create(thumbnail, new Rect(0, 0, thumbnail.width, thumbnail.height), new Vector2(0.5f, 0.5f));
+                newButton.thumbnailImg.sprite = sprite;
+            }
+
+            while(confirmDelete == -1)
+            {
+                yield return null;
+            }
+            
+            if(confirmDelete == 1)
+            {
+                string jsonFileName = _levelName  + ".json";
+                string thumbnailFileName = _levelName + ".png";
+
+                string jsonPath = Path.Combine(Application.persistentDataPath, "Levels", "Edit", jsonFileName);
+                string thumbnailPath = Path.Combine(Application.persistentDataPath, "Levels", "Edit", thumbnailFileName);
+
+                //Delete json file
+                if (File.Exists(jsonPath)) File.Delete(jsonPath);
+                else Debug.LogWarning("File not found: " + jsonPath);
+
+                //Delete thumbnail
+                if (File.Exists(thumbnailPath)) File.Delete(thumbnailPath);
+                else Debug.LogWarning("File not found: " + thumbnailPath);
+
+                Destroy(_button.gameObject);
+            }
+            else if (confirmDelete != 0) throw new System.Exception($"Confirm delete has the wrong value: {confirmDelete}");
+
+            UIManager.instance.ToggleUIElement("DeleteLevel?", false);
+            Destroy(newButton);
+
+            confirmDelete = -1;
+            deletingLevel = false;
         }
 
-        Destroy(_button.gameObject);
     }
 }

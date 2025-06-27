@@ -5,6 +5,7 @@ using UnityEngine.Tilemaps;
 using System.Reflection;
 using TMPro;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class UIManager : MonoBehaviour
 {
@@ -12,11 +13,13 @@ public class UIManager : MonoBehaviour
     List<Transform> menuPanels = new();
     Transform currentPanel;
     Dictionary<string, GameObject> uiElementsDict;
+    Dictionary<string, TextMeshProUGUI> textElementsDict;
     Dictionary<string, Sprite> ruleTilesDefaultSpritesDict;
     Image selectedTile;
     public bool inMenu;
     [Header("UI Elements")]
     [SerializeField] List<GameObject> uiElements;
+    [SerializeField] List<TextMeshProUGUI> textElements;
     [SerializeField] TextMeshProUGUI selectPanelText;
     [SerializeField] Image panelLeftArrow;
     [SerializeField] Image panelRightArrow;
@@ -28,16 +31,20 @@ public class UIManager : MonoBehaviour
     void Awake()
     {
         instance = this;
-    }
-
-    void Start()
-    {
         uiElementsDict = new();
         foreach(GameObject _element in uiElements)
         {
             uiElementsDict.Add(_element.name, _element);
-        }   
+        }  
+        textElementsDict = new();
+        foreach(TextMeshProUGUI _element in textElements)
+        {
+            textElementsDict.Add(_element.name, _element);
+        }  
+    }
 
+    void Start()
+    {
         if(SceneManager.GetActiveScene().name == "LevelEditor") SetupAllTileMenus();
     }
 
@@ -55,17 +62,23 @@ public class UIManager : MonoBehaviour
         Debug.LogWarning(_element + " not found in dictionary");
         return null;
     }
+    public TextMeshProUGUI GetTextElementFromDict(string _element)
+    {
+        if(textElementsDict.ContainsKey(_element)) return textElementsDict[_element];
+        Debug.LogWarning(_element + " not found in dictionary");
+        return null;
+    }
     
-    public void ToggleUIElement(GameObject _element, bool _active)
+    public void ToggleUIElement(string _element, bool _active)
     {
         if(_element == null) return; 
-        _element.SetActive(_active);
+        GetUIElementFromDict(_element).SetActive(_active);
     }
 
     public void OpenCloseMenu()
     {
         GameObject escapeMenu = GetUIElementFromDict("EscapeMenu");
-        ToggleUIElement(escapeMenu, !escapeMenu.activeSelf);
+        ToggleUIElement("EscapeMenu", !escapeMenu.activeSelf);
         inMenu = escapeMenu.activeSelf;
     }
 
@@ -167,10 +180,13 @@ public class UIManager : MonoBehaviour
         menuPanels.Add(_panel);
     }
 
-    public string LimitString(string input, int maxLength)
+    public IEnumerator ShowTextForSeconds(string _element, string _text, float duration)
     {
-        if (string.IsNullOrEmpty(input)) return input;
-        return input.Length <= maxLength ? input : input.Substring(0, maxLength);
+        TextMeshProUGUI _tmpro = GetTextElementFromDict(_element);
+        _tmpro.text = _text;
+        yield return new WaitForSeconds(duration);
+        _tmpro.text = "";
+
     }
 
     public void ChangeLevelName(TMP_InputField _name)

@@ -3,7 +3,6 @@ using UnityEngine;
 
 public class InputFields : MonoBehaviour
 {
-    [SerializeField] int characterLimit;
     [SerializeField] TMP_InputField inputField;
     [SerializeField] GameObject textPromptIfEmpty;
 
@@ -16,7 +15,6 @@ public class InputFields : MonoBehaviour
 
     public void OnValueChanged()
     {
-        inputField.text = UIManager.instance.LimitString(inputField.text, characterLimit);
         if(textPromptIfEmpty != null) 
         {
             if(inputField.text == "") textPromptIfEmpty.SetActive(true);

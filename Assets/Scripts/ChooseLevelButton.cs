@@ -6,25 +6,46 @@ using UnityEngine.UI;
 
 public class ChooseLevelButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    public ShowLevels showLevels;
-    public GameObject buttons;
+    ShowLevels showLevels;
+    GameObject buttonsToShow;
+    [SerializeField] GameObject editButtons, playButtons;
     public TextMeshProUGUI levelName;
-    public Image thumbnailImg, clearedImg;
+    public Image thumbnailImg, clearedImg, beatenImg;
+    public Color clearedColor, beatenColor;
+
+    public void SetCorrectIcons(bool _edit, string _levelName, bool clearedOrBeaten, ShowLevels _showLevels)
+    {
+        showLevels = _showLevels;
+        levelName.text = _levelName;
+
+        //From the edit meun
+        if(_edit) 
+        {
+            buttonsToShow = editButtons;
+            clearedImg.gameObject.SetActive(true);
+
+            if(clearedOrBeaten) clearedImg.color = clearedColor;
+        }
+        //From the play menu
+        else 
+        {
+            buttonsToShow = playButtons;
+            beatenImg.gameObject.SetActive(true);
+
+            if(clearedOrBeaten) beatenImg.color = beatenColor;
+        }
+
+    }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        buttons.SetActive(true);
+        if(buttonsToShow != null) buttonsToShow.SetActive(true);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        buttons.SetActive(false);
+        if(buttonsToShow != null) buttonsToShow.SetActive(false);
     }
-
-    // public void SelectLevel()
-    // {
-    //     showLevels.SelectLevel(this);
-    // }
 
     public void LoadLevel()
     {
@@ -33,6 +54,6 @@ public class ChooseLevelButton : MonoBehaviour, IPointerEnterHandler, IPointerEx
 
     public void DeleteLevel()
     {
-        showLevels.DeleteLevel(this, levelName.text + ".json");
+        StartCoroutine(showLevels.DeleteLevel(this, levelName.text));
     }
 }

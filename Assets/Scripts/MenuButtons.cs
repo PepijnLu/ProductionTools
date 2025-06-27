@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -8,16 +9,15 @@ public class MenuButtons : MonoBehaviour
     [SerializeField] LevelBuilder levelBuilder;
     [SerializeField] PlayerController playerController;
     [SerializeField] GridRenderer gridRenderer;
+    [SerializeField] ShowLevels showLevels;
     public void ToggleBlockSelecter()
     {
 
         GameObject blockSelect = UIManager.instance.GetUIElementFromDict("BlockSelect");
         if(UIManager.instance.inMenu && !blockSelect.activeSelf) return;
 
-        GameObject gridRenderer = UIManager.instance.GetUIElementFromDict("GridRenderer");
-
-        UIManager.instance.ToggleUIElement(blockSelect, !blockSelect.activeSelf);
-        UIManager.instance.ToggleUIElement(gridRenderer, !blockSelect.activeSelf);
+        UIManager.instance.ToggleUIElement("BlockSelect", !blockSelect.activeSelf);
+        UIManager.instance.ToggleUIElement("GridRenderer", !blockSelect.activeSelf);
         UIManager.instance.inMenu = blockSelect.activeSelf;
     }
 
@@ -28,7 +28,7 @@ public class MenuButtons : MonoBehaviour
 
     public void SaveLevel()
     {
-        SaveAndLoad.instance.SaveLevel(LevelLoaderData.loadedLevelName);
+        SaveAndLoad.instance.SaveLevel(SceneData.loadedLevelName);
     }
 
     public void LoadLevel()
@@ -36,83 +36,86 @@ public class MenuButtons : MonoBehaviour
         SceneManager.LoadScene("LevelEditor");
     }
 
-    public void LoadMainMenu()
-    {
-        SceneManager.LoadScene("MainMenu");
-    }
-
     public void LoadScene(string _sceneName)
     {
+        if(_sceneName == "MainMenu") SceneData.menuToLoad = "Create";
         SceneManager.LoadScene(_sceneName);
     }
 
     public void CreateToMainMenu(bool _toMain)
     {
-        GameObject createMenu = UIManager.instance.GetUIElementFromDict("Create");
-        GameObject mainMenu = UIManager.instance.GetUIElementFromDict("MainMenu");
-
-        createMenu.SetActive(!_toMain);
-        mainMenu.SetActive(_toMain);
+        UIManager.instance.ToggleUIElement("Create", !_toMain);
+        UIManager.instance.ToggleUIElement("MainMenu", _toMain);
     }
 
     public void CreateNewName(bool _create)
     {
-        GameObject chooseName = UIManager.instance.GetUIElementFromDict("ChooseName");
-        GameObject normalButtons = UIManager.instance.GetUIElementFromDict("NormalButtons");
-
-        normalButtons.SetActive(!_create);
-        chooseName.SetActive(_create);
+        UIManager.instance.ToggleUIElement("ChooseName", _create);
+        UIManager.instance.ToggleUIElement("NormalButtons", !_create);
     }
 
     public void CreateNewLevel(TMP_InputField _inputField)
     {
-        if(ShowLevels.loadingLevel || _inputField.text == "") return;
-
-        string levelName = _inputField.text;
-        string fileName = _inputField.text + ".json";
-        List<string> existingNames = ShowLevels.GetJsonFileNames(Application.persistentDataPath);
-        if(existingNames.Contains(fileName))
+        if(ShowLevels.loadingLevel || _inputField.text == "") 
         {
-            Debug.Log("Level name already exists");
+            Debug.Log("Already loading level");
             return;
         }
 
+        string levelName = _inputField.text;
+        string fileName = _inputField.text + ".json";
+        List<string> existingNames = ShowLevels.GetJsonFileNames(Path.Combine(Application.persistentDataPath, "Levels", "Edit"));
+        if(existingNames.Contains(fileName))
+        {
+            Debug.Log("Level name already exists");
+            StartCoroutine(UIManager.instance.ShowTextForSeconds("NameInUse", "name already in use!", 2f));
+            return;
+        }
+        else Debug.Log("Loading level");
 
-        LevelLoaderData.loadedLevelName = levelName;
+
+        SceneData.loadedLevelName = levelName;
         ShowLevels.loadingLevel = true;
         SceneManager.LoadScene("LevelEditor");
     }
 
+    public void PlayMenu(bool _play)
+    {
+        UIManager.instance.ToggleUIElement("Play/Edit", _play);
+        UIManager.instance.ToggleUIElement("MainMenu", !_play);
+        //showLevels.LoadLevels(true);
+
+        if(_play) showLevels.LoadLevels(false);
+        else showLevels.UnloadLevels();
+    }
+
     public void EditLevel(bool _edit)
     {
-        GameObject editMenu = UIManager.instance.GetUIElementFromDict("Edit");
-        GameObject createMenu = UIManager.instance.GetUIElementFromDict("Create");
+        UIManager.instance.ToggleUIElement("Play/Edit", _edit);
+        UIManager.instance.ToggleUIElement("Create", !_edit);
+        //showLevels.LoadLevels(false);
 
-        editMenu.SetActive(_edit);
-        createMenu.SetActive(!_edit);
+        if(_edit) showLevels.LoadLevels(true);
+        else showLevels.UnloadLevels();
     }
 
     public void StartLevelClearing(bool _start)
     {
-        GameObject selectedBlockButton = UIManager.instance.GetUIElementFromDict("SelectedBlockButton");
-        GameObject blockSelect = UIManager.instance.GetUIElementFromDict("BlockSelect");
-        GameObject escapeMenu = UIManager.instance.GetUIElementFromDict("EscapeMenu");
-
-        escapeMenu.SetActive(false);
-
-        GameObject initialEscapeMenu = UIManager.instance.GetUIElementFromDict("InitialEscMenu");
-        GameObject clearingEscapeMenu = UIManager.instance.GetUIElementFromDict("ClearingEscMenu");
-
-        initialEscapeMenu.SetActive(!_start);
-        clearingEscapeMenu.SetActive(_start);
-
-        selectedBlockButton.SetActive(!_start);
-        blockSelect.SetActive(false);
+        UIManager.instance.ToggleUIElement("EscapeMenu", false);
+        UIManager.instance.ToggleUIElement("InitialEscMenu", !_start);
+        UIManager.instance.ToggleUIElement("SelectedBlockButton", !_start);
+        UIManager.instance.ToggleUIElement("ClearingEscMenu", _start);
+        UIManager.instance.ToggleUIElement("BlockSelect", false);
 
         gridRenderer.gameObject.SetActive(!_start);
     
         levelBuilder.enabled = !_start;;
         playerController.enabled = _start;
+    }
+
+    public void ConfirmDelete(bool _confirm)
+    {
+        showLevels.ConfirmDelete(_confirm);
     }
  
 }

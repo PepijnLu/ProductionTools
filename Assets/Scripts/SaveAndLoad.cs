@@ -5,15 +5,17 @@ using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
-public static class LevelLoaderData
+public static class SceneData
 {
     public static string loadedLevelName = "";
+    public static string menuToLoad= "MainMenu";
 }
 public class LevelData
 {
     public string levelName;
     public List<TileData> tiles = new();
-    public bool isCleared;
+    public bool isCleared, isBeaten;
+    public float fastestTime;
     public float playerStartX = 2.5f, playerStartY = 2.5f;
 }
 
@@ -32,6 +34,7 @@ public class SaveAndLoad : MonoBehaviour
     LevelData levelData;
     Dictionary<string, TileBase> tilePrefabs;
     Dictionary<string, Tilemap> tilemaps;
+    [SerializeField] Tilemap groundMap, triggerMap;
     [SerializeField] Camera thumbnailCamera;
     [SerializeField] RenderTexture thumbnailRT;
     [SerializeField] GridRenderer gridRenderer;
@@ -43,13 +46,17 @@ public class SaveAndLoad : MonoBehaviour
         instance = this;
         levelData = new();
         tilePrefabs = new();
-        tilemaps = new();
+        tilemaps = new()
+        {
+            ["Base Blocks"] = groundMap,
+            ["Items"] = triggerMap
+        };
 
         LoadAllTilePrefabs("Tiles");
 
-        if(LevelLoaderData.loadedLevelName != "")
+        if(SceneData.loadedLevelName != "")
         {
-            LoadAndBuild(LevelLoaderData.loadedLevelName + ".json");
+            LoadAndBuild(SceneData.loadedLevelName + ".json");
         }
         else if(levelToLoadDebug != "")
         {
@@ -119,14 +126,15 @@ public class SaveAndLoad : MonoBehaviour
     public void SaveLevel(string _levelName, bool _isCleared = false)
     {
         playerStartPosition = new Vector2(player.transform.position.x, player.transform.position.y);
-        if(LevelLoaderData.loadedLevelName == "") return;
+        if(SceneData.loadedLevelName == "") return;
 
+        levelData.levelName = _levelName;   
         levelData.isCleared = _isCleared;
         levelData.playerStartX = playerStartPosition.x;
         levelData.playerStartX = playerStartPosition.y;
 
         string json = JsonConvert.SerializeObject(levelData, Formatting.Indented);
-        string path = Path.Combine(Application.persistentDataPath, _levelName + ".json");
+        string path = Path.Combine(Application.persistentDataPath, "Levels", "Edit", _levelName + ".json");
 
         if (File.Exists(path))
         {
@@ -140,7 +148,7 @@ public class SaveAndLoad : MonoBehaviour
         Texture2D thumbnail = CaptureThumbnail(thumbnailCamera, thumbnailRT);
         byte[] bytes = thumbnail.EncodeToPNG();
 
-        string thumbnailPath = Path.Combine(Application.persistentDataPath, _levelName + ".png");
+        string thumbnailPath = Path.Combine(Application.persistentDataPath, "Levels", "Edit", _levelName + ".png");
         File.WriteAllBytes(thumbnailPath, bytes);
         gridRenderer.gameObject.SetActive(true);
     }
@@ -153,7 +161,7 @@ public class SaveAndLoad : MonoBehaviour
 
     public LevelData LoadLevel(string fileName)
     {
-        string path = Path.Combine(Application.persistentDataPath, fileName);
+        string path = Path.Combine(Application.persistentDataPath, "Levels", "Edit", fileName);
         if (!File.Exists(path))
         {
             Debug.LogWarning("File not found: " + path);
@@ -194,7 +202,7 @@ public class SaveAndLoad : MonoBehaviour
 
     public void ClearLevel()
     {
-        SaveLevel(LevelLoaderData.loadedLevelName, true);
+        SaveLevel(SceneData.loadedLevelName, true);
     }
 
     public Texture2D CaptureThumbnail(Camera _thumbnailCamera, RenderTexture _renderTexture)
