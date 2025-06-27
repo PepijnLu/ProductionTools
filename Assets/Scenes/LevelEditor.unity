@@ -4763,30 +4763,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1899146671}
-        m_TargetAssemblyTypeName: MenuButtons, Assembly-CSharp
-        m_MethodName: SetLevelsToLoad
-        m_Mode: 5
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: Play
-          m_BoolArgument: 1
-        m_CallState: 2
-      - m_Target: {fileID: 1899146671}
-        m_TargetAssemblyTypeName: MenuButtons, Assembly-CSharp
-        m_MethodName: SetMenuToLoad
-        m_Mode: 5
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: Play/Edit
-          m_BoolArgument: 1
-        m_CallState: 2
       - m_Target: {fileID: 1239927925}
         m_TargetAssemblyTypeName: SaveAndLoad, Assembly-CSharp
         m_MethodName: UploadLevel
@@ -4797,18 +4773,6 @@ MonoBehaviour:
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
-          m_BoolArgument: 1
-        m_CallState: 2
-      - m_Target: {fileID: 1899146671}
-        m_TargetAssemblyTypeName: MenuButtons, Assembly-CSharp
-        m_MethodName: LoadScene
-        m_Mode: 5
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: MainMenu
           m_BoolArgument: 1
         m_CallState: 2
 --- !u!114 &1413705381
@@ -5647,6 +5611,18 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1899146671}
         m_TargetAssemblyTypeName: MenuButtons, Assembly-CSharp
+        m_MethodName: SetLevelsToLoad
+        m_Mode: 5
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: Edit
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 1899146671}
+        m_TargetAssemblyTypeName: MenuButtons, Assembly-CSharp
         m_MethodName: SetMenuToLoad
         m_Mode: 5
         m_Arguments:
@@ -5654,7 +5630,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: Create
+          m_StringArgument: Play/Edit
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 1899146671}

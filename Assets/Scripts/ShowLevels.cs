@@ -60,10 +60,10 @@ public class ShowLevels : MonoBehaviour
 
             
             //Instantiate new level object
-            ChooseLevelButton newButton = UIManager.instance.InstantiateLevelObject(gridLayout.transform, _data.levelName);
+            ChooseLevelButton newButton = UIManager.instance.InstantiateLevelObject(gridLayout.transform, _data.levelName, path);
             //Check if the level has been beaten/cleared
-            if(_edit) beatenOrCleared = _data.isBeaten;
-            else beatenOrCleared = levelCleared;
+            if(_edit) beatenOrCleared = levelCleared;
+            else beatenOrCleared = _data.isBeaten;
             //Set the right icons/references on the object
             newButton.SetCorrectIcons(_edit, beatenOrCleared, this);
             //Add it to the list for clearing later
@@ -130,14 +130,14 @@ public class ShowLevels : MonoBehaviour
         else confirmDelete = 0;
     }
 
-    public IEnumerator DeleteLevel(ChooseLevelButton _button, string _levelName)
+    public IEnumerator DeleteLevel(ChooseLevelButton _button, string _levelName, string levelPath)
     {
         if(!deletingLevel)
         {
             deletingLevel = true;
             UIManager.instance.ToggleUIElement("DeleteLevel?", true);
 
-            ChooseLevelButton newButton = UIManager.instance.InstantiateLevelObject(deleteLevel, _levelName);
+            ChooseLevelButton newButton = UIManager.instance.InstantiateLevelObject(deleteLevel, _levelName, levelPath);
 
             while(confirmDelete == -1)
             {
@@ -149,8 +149,8 @@ public class ShowLevels : MonoBehaviour
                 string jsonFileName = _levelName  + ".json";
                 string thumbnailFileName = _levelName + ".png";
 
-                string jsonPath = Path.Combine(Application.persistentDataPath, "Levels", "Edit", jsonFileName);
-                string thumbnailPath = Path.Combine(Application.persistentDataPath, "Levels", "Thumbnails", thumbnailFileName);
+                string jsonPath = Path.Combine(levelPath, jsonFileName);
+                string thumbnailPath = Path.Combine(levelPath, "Thumbnails", thumbnailFileName);
 
                 //Delete json file
                 if (File.Exists(jsonPath)) File.Delete(jsonPath);

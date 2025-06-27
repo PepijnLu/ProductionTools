@@ -182,12 +182,12 @@ public class UIManager : MonoBehaviour
         menuPanels.Add(_panel);
     }
 
-    public ChooseLevelButton InstantiateLevelObject(Transform _levelTransform, string _levelName)
+    public ChooseLevelButton InstantiateLevelObject(Transform _levelTransform, string _levelName, string levelPath)
     {
         ChooseLevelButton newButton = Instantiate(chooseLevelButtonPrefab, _levelTransform);
         newButton.levelName.text = _levelName;
 
-        string path = Path.Combine(Application.persistentDataPath, "Levels", "Thumbnails");
+        string path = Path.Combine(levelPath, "Thumbnails");
         Texture2D thumbnail = LoadThumbnail(path, _levelName + ".png");
         if(thumbnail != null)
         {

@@ -28,6 +28,20 @@ public class LevelBuilder : MonoBehaviour
             Vector3Int cellPosition = startingTilemap.WorldToCell(_child.position);
             CreateTile(cellPosition, startingTilemap);
         }
+
+        switch(SceneData.loadBehaviour)
+        {
+            case "Edit":
+
+                break;
+            case "Clear":
+
+                break;
+            case "Play":
+
+                break;
+
+        }
     }
 
     // Update is called once per frame

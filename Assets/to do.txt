@@ -1,4 +1,4 @@
--fix play thing and add delete button for it
--save and quit should go to edit
--clear should start with clearing
--fix name check in uploading levels
+-add different functionality for clear/play/edit in LevelBuilder
+    -instantly go in clear when clear
+    -make play mode and save time in play
+    -keep edit as is

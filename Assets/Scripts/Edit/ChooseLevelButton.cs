@@ -1,3 +1,4 @@
+using System.IO;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -12,6 +13,7 @@ public class ChooseLevelButton : MonoBehaviour, IPointerEnterHandler, IPointerEx
     public TextMeshProUGUI levelName;
     public Image thumbnailImg, clearedImg, beatenImg;
     public Color clearedColor, beatenColor;
+    string levelPath;
 
     public void SetCorrectIcons(bool _edit, bool clearedOrBeaten, ShowLevels _showLevels)
     {
@@ -22,7 +24,7 @@ public class ChooseLevelButton : MonoBehaviour, IPointerEnterHandler, IPointerEx
         {
             buttonsToShow = editButtons;
             clearedImg.gameObject.SetActive(true);
-
+            levelPath = Path.Combine(Application.persistentDataPath, "Levels", "Edit");
             if(clearedOrBeaten) clearedImg.color = clearedColor;
         }
         //From the play menu
@@ -30,6 +32,7 @@ public class ChooseLevelButton : MonoBehaviour, IPointerEnterHandler, IPointerEx
         {
             buttonsToShow = playButtons;
             beatenImg.gameObject.SetActive(true);
+            levelPath = Path.Combine(Application.persistentDataPath, "Levels", "Play");
 
             if(clearedOrBeaten) beatenImg.color = beatenColor;
         }
@@ -46,13 +49,15 @@ public class ChooseLevelButton : MonoBehaviour, IPointerEnterHandler, IPointerEx
         if(buttonsToShow != null) buttonsToShow.SetActive(false);
     }
 
-    public void LoadLevel()
+    public void LoadLevel(string _loadBehaviour)
     {
+        SceneData.loadBehaviour = _loadBehaviour;
         showLevels.LoadLevel(levelName.text);
     }
 
     public void DeleteLevel()
     {
-        StartCoroutine(showLevels.DeleteLevel(this, levelName.text));
+        
+        StartCoroutine(showLevels.DeleteLevel(this, levelName.text, levelPath));
     }
 }

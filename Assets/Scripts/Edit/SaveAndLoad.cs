@@ -7,12 +7,14 @@ using Unity.VisualScripting;
 using UnityEditor.Overlays;
 using UnityEditor.SearchService;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 public static class SceneData
 {
     public static string loadedLevelName = "";
     public static string menuToLoad = "MainMenu";
     public static string levelsToLoad;
+    public static string loadBehaviour;
 }
 public class LevelData
 {
@@ -144,7 +146,7 @@ public class SaveAndLoad : MonoBehaviour
         Texture2D thumbnail = CaptureThumbnail(thumbnailCamera, thumbnailRT);
         byte[] bytes = thumbnail.EncodeToPNG();
 
-        string thumbnailPath = Path.Combine(Application.persistentDataPath, "Levels", "Thumbnails", _levelName + ".png");
+        string thumbnailPath = Path.Combine(Application.persistentDataPath, "Levels", "Edit", "Thumbnails", _levelName + ".png");
         File.WriteAllBytes(thumbnailPath, bytes);
         gridRenderer.gameObject.SetActive(true);
     }
@@ -152,32 +154,55 @@ public class SaveAndLoad : MonoBehaviour
     public void ClearLevel()
     {
         string levelName = SceneData.loadedLevelName;
-        string path = Path.Combine(Application.persistentDataPath, "Levels", "Edit", levelName + ".json");
-        string json = File.ReadAllText(path);
+        string path = Path.Combine(Application.persistentDataPath, "Levels", "Edit");
+        string pathToLevel = Path.Combine(path, levelName + ".json");
+        string json = File.ReadAllText(pathToLevel);
 
         JObject obj = JObject.Parse(json);
 
         obj["isCleared"] = true;
 
-        File.WriteAllText(path, obj.ToString(Formatting.Indented));
+        File.WriteAllText(Path.Combine(path, levelName + ".json"), obj.ToString(Formatting.Indented));
         UIManager.instance.ToggleUIElement("LevelCleared", true);
-        UIManager.instance.InstantiateLevelObject(UIManager.instance.GetUIElementFromDict("ClearedLevelTransform").transform, levelName);
+        UIManager.instance.InstantiateLevelObject(UIManager.instance.GetUIElementFromDict("ClearedLevelTransform").transform, levelName, path);
     }
 
     public void UploadLevel(TMP_InputField _textInput)
     {
-        string levelName = SceneData.loadedLevelName;
-        string sourcePath = Path.Combine(Application.persistentDataPath, "Levels", "Edit", levelName + ".json");
-        string destinationPath = Path.Combine(Application.persistentDataPath, "Levels", "Play", _textInput + ".json");
+        string oldLevelName = SceneData.loadedLevelName;
+        string newLevelName = _textInput.text;
 
-        if (File.Exists(destinationPath))
+        string sourcePath = Path.Combine(Application.persistentDataPath, "Levels", "Edit");
+        string destinationPath = Path.Combine(Application.persistentDataPath, "Levels", "Play");
+
+        string sourceLevelPath = Path.Combine(sourcePath, oldLevelName + ".json");
+        string destinationLevelPath = Path.Combine(destinationPath, newLevelName + ".json");
+
+        string sourceThumbnailPath = Path.Combine(sourcePath, "Thumbnails", oldLevelName + ".png");
+        string destinationThumbnailPath = Path.Combine(destinationPath, "Thumbnails", newLevelName + ".png");
+
+        if (File.Exists(destinationLevelPath))
         {
-            Debug.LogWarning("File already exists: " + destinationPath);
-            UIManager.instance.ShowTextForSeconds("UP_NameInUse", "name already in use!", 2f);
+            Debug.LogWarning("File already exists: " + destinationLevelPath);
+            StartCoroutine(UIManager.instance.ShowTextForSeconds("UP_NameInUse", "name already in use!", 2f));
         }
         else
         {
-            File.Copy(sourcePath, destinationPath);
+            //Copy the level to "Play" folder
+            File.Copy(sourceLevelPath, destinationLevelPath);
+
+            //Update the level name
+            string json = File.ReadAllText(destinationLevelPath);
+            JObject obj = JObject.Parse(json);
+            obj["levelName"] = newLevelName;
+            File.WriteAllText(destinationLevelPath, obj.ToString(Formatting.Indented));
+
+            //Duplicate the thumbnail
+            File.Copy(sourceThumbnailPath, destinationThumbnailPath);
+
+            SceneData.menuToLoad = "Play/Edit";
+            SceneData.levelsToLoad = "Play";
+            SceneManager.LoadScene("MainMenu");
         }
     }
 
