@@ -53,6 +53,11 @@ public class PlayerController : MonoBehaviour
 
     }
 
+    public void KillMovement()
+    {
+        rb.linearVelocity = Vector2.zero;
+    }
+
     void FixedUpdate()
     {
         // Move the player

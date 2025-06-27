@@ -1,4 +1,3 @@
--add different functionality for clear/play/edit in LevelBuilder
-    -instantly go in clear when clear
-    -make play mode and save time in play
-    -keep edit as is
+-test edit, clear play
+-sometimes logged location of trigger tiles is wrong, preventing necessary triggers
+-add level beaten screen with coins and timer (add timer)

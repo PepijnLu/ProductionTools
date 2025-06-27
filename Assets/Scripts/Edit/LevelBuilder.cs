@@ -9,9 +9,11 @@ public class LevelBuilder : MonoBehaviour
     [SerializeField] Tilemap currentTilemap;
     [SerializeField] Tilemap solidTileMap, triggerTilemap, startingTilemap;
     [SerializeField] TileBase currentTile;
+    [SerializeField] PlayerController playerController;
     Dictionary<string, Tilemap> tilemaps;
     List<Vector3Int> touchedCellPositions = new();
     bool leftMouseDown, rightMouseDown; 
+    bool playingLevel;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -28,25 +30,13 @@ public class LevelBuilder : MonoBehaviour
             Vector3Int cellPosition = startingTilemap.WorldToCell(_child.position);
             CreateTile(cellPosition, startingTilemap);
         }
-
-        switch(SceneData.loadBehaviour)
-        {
-            case "Edit":
-
-                break;
-            case "Clear":
-
-                break;
-            case "Play":
-
-                break;
-
-        }
     }
 
     // Update is called once per frame
     void Update()
     {
+        if(playingLevel) return;
+
         HandleMouseInputs();
         PlaceTiles();
     }
@@ -140,5 +130,20 @@ public class LevelBuilder : MonoBehaviour
         }
 
         return false;
+    }
+
+    public void StartLevelClearing(bool _start)
+    {
+        UIManager.instance.ToggleUIElement("EscapeMenu", false);
+        UIManager.instance.ToggleUIElement("InitialEscMenu", !_start);
+        UIManager.instance.ToggleUIElement("SelectedBlockButton", !_start);
+        UIManager.instance.ToggleUIElement("ClearingEscMenu", _start);
+        UIManager.instance.ToggleUIElement("BlockSelect", false);
+
+        //gridRenderer.gameObject.SetActive(!_start);
+        UIManager.instance.ToggleUIElement("GridRenderer", !_start);
+    
+        playerController.enabled = _start;
+        playingLevel = _start;
     }
 }

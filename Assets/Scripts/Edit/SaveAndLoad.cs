@@ -3,6 +3,7 @@ using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TMPro;
+using System;
 using Unity.VisualScripting;
 using UnityEditor.Overlays;
 using UnityEditor.SearchService;
@@ -46,6 +47,8 @@ public class SaveAndLoad : MonoBehaviour
     [SerializeField] GridRenderer gridRenderer;
     [SerializeField] GameObject player;
     [SerializeField] Vector2 playerStartPosition;
+    [SerializeField] PlayerController playerController;
+    [SerializeField] LevelBuilder levelBuilder;
 
     void Awake()
     {
@@ -67,6 +70,23 @@ public class SaveAndLoad : MonoBehaviour
         else if(levelToLoadDebug != "")
         {
             LoadAndBuild(levelToLoadDebug + ".json");
+        }
+    }
+
+    void Start()
+    {
+        switch(SceneData.loadBehaviour)
+        {
+            case "Edit":
+
+                break;
+            case "Clear":
+                levelBuilder.StartLevelClearing(true);
+                break;
+            case "Play":
+
+                break;
+
         }
     }
     void LoadAllTilePrefabs(string folder)
@@ -153,14 +173,34 @@ public class SaveAndLoad : MonoBehaviour
 
     public void ClearLevel()
     {
+        playerController.KillMovement();
+        playerController.enabled = false;
+        string path;
+        string boolToFlip;
+
+        if(SceneData.loadBehaviour == "Play")
+        {
+            path = Path.Combine(Application.persistentDataPath, "Levels", "Play");
+            boolToFlip = "isBeaten";
+        }
+        else if(SceneData.loadBehaviour == "Clear")
+        {
+            path = Path.Combine(Application.persistentDataPath, "Levels", "Edit");
+            boolToFlip = "isCleared";
+        }
+        else 
+        {
+            Debug.LogWarning($"Finish flag hit in: {SceneData.loadBehaviour}");
+            return;
+        }
+
         string levelName = SceneData.loadedLevelName;
-        string path = Path.Combine(Application.persistentDataPath, "Levels", "Edit");
         string pathToLevel = Path.Combine(path, levelName + ".json");
         string json = File.ReadAllText(pathToLevel);
 
         JObject obj = JObject.Parse(json);
 
-        obj["isCleared"] = true;
+        obj[boolToFlip] = true;
 
         File.WriteAllText(Path.Combine(path, levelName + ".json"), obj.ToString(Formatting.Indented));
         UIManager.instance.ToggleUIElement("LevelCleared", true);
@@ -214,7 +254,11 @@ public class SaveAndLoad : MonoBehaviour
 
     public LevelData LoadLevel(string fileName)
     {
-        string path = Path.Combine(Application.persistentDataPath, "Levels", "Edit", fileName);
+        string editOrPlay;
+        if(SceneData.loadBehaviour == "Play") editOrPlay = "Play";
+        else if(SceneData.loadBehaviour == "Edit" || SceneData.loadBehaviour == "Clear") editOrPlay = "Edit";
+        else throw new Exception($"{SceneData.loadBehaviour} not valid load behaviour");
+        string path = Path.Combine(Application.persistentDataPath, "Levels", editOrPlay, fileName);
         if (!File.Exists(path))
         {
             Debug.LogWarning("File not found: " + path);

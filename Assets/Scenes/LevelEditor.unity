@@ -3403,6 +3403,7 @@ MonoBehaviour:
   triggerTilemap: {fileID: 1821277430}
   startingTilemap: {fileID: 1250664785}
   currentTile: {fileID: 11400000, guid: 5ee15f5f9a7970c4dbbc694f6df731cd, type: 2}
+  playerController: {fileID: 6952628394063714503}
 --- !u!4 &990710053
 Transform:
   m_ObjectHideFlags: 0
@@ -4007,6 +4008,8 @@ MonoBehaviour:
   gridRenderer: {fileID: 1944696376}
   player: {fileID: 6952628394063714496}
   playerStartPosition: {x: 0, y: 0}
+  playerController: {fileID: 6952628394063714503}
+  levelBuilder: {fileID: 990710052}
 --- !u!4 &1239927926
 Transform:
   m_ObjectHideFlags: 0

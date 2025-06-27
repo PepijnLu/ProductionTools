@@ -32,6 +32,12 @@ public class ShowLevels : MonoBehaviour
         if (!Directory.Exists(editPath)) Directory.CreateDirectory(editPath);
         if (!Directory.Exists(playPath)) Directory.CreateDirectory(playPath);
 
+        string editThumbnailPath = Path.Combine(editPath, "Thumbnails");
+        string playThumbnailPath = Path.Combine(playPath, "Thumbnails");
+
+        if (!Directory.Exists(editThumbnailPath)) Directory.CreateDirectory(editThumbnailPath);
+        if (!Directory.Exists(playThumbnailPath)) Directory.CreateDirectory(playThumbnailPath);
+
         //Load correct menu
         UIManager.instance.ToggleUIElement(SceneData.menuToLoad, true);
 

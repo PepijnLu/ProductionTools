@@ -82,7 +82,7 @@ public class MenuButtons : MonoBehaviour
         }
         else Debug.Log("Loading level");
 
-
+        SceneData.loadBehaviour = "Edit";
         SceneData.loadedLevelName = levelName;
         ShowLevels.loadingLevel = true;
         SceneManager.LoadScene("LevelEditor");
@@ -108,16 +108,7 @@ public class MenuButtons : MonoBehaviour
 
     public void StartLevelClearing(bool _start)
     {
-        UIManager.instance.ToggleUIElement("EscapeMenu", false);
-        UIManager.instance.ToggleUIElement("InitialEscMenu", !_start);
-        UIManager.instance.ToggleUIElement("SelectedBlockButton", !_start);
-        UIManager.instance.ToggleUIElement("ClearingEscMenu", _start);
-        UIManager.instance.ToggleUIElement("BlockSelect", false);
-
-        gridRenderer.gameObject.SetActive(!_start);
-    
-        levelBuilder.enabled = !_start;;
-        playerController.enabled = _start;
+        levelBuilder.StartLevelClearing(_start);
     }
 
     public void ConfirmDelete(bool _confirm)

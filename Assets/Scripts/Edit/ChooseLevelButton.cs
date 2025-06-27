@@ -52,6 +52,7 @@ public class ChooseLevelButton : MonoBehaviour, IPointerEnterHandler, IPointerEx
     public void LoadLevel(string _loadBehaviour)
     {
         SceneData.loadBehaviour = _loadBehaviour;
+        Debug.Log($"Changed scene load behaviour to: {_loadBehaviour}");
         showLevels.LoadLevel(levelName.text);
     }
 
