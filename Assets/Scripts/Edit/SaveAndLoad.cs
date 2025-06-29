@@ -22,8 +22,9 @@ public class LevelData
     public string levelName;
     public List<TileData> tiles = new();
     public bool isCleared, isBeaten;
-    public float fastestTime;
+    public float timeToComplete = 300, fastestTime;
     public float playerStartX = 2.5f, playerStartY = 2.5f;
+    public int coinsCollected;
 }
 
 public struct TileData
@@ -84,7 +85,7 @@ public class SaveAndLoad : MonoBehaviour
                 levelBuilder.StartLevelClearing(true);
                 break;
             case "Play":
-
+                levelBuilder.StartLevelClearing(true);
                 break;
 
         }
@@ -173,38 +174,64 @@ public class SaveAndLoad : MonoBehaviour
 
     public void ClearLevel()
     {
+        //Disable player movement
         playerController.KillMovement();
         playerController.enabled = false;
+        
+
+        //Variables in json to update
         string path;
         string boolToFlip;
+        //Depends on if youre clearing or playing
+        string uiElementToActivate;
+        string levelIconTransform;
+        bool _edit;
 
-        if(SceneData.loadBehaviour == "Play")
+        //Update correct things based on playing vs clearing
+        if (SceneData.loadBehaviour == "Play")
         {
             path = Path.Combine(Application.persistentDataPath, "Levels", "Play");
             boolToFlip = "isBeaten";
+            uiElementToActivate = "LevelBeaten";
+            levelIconTransform = "BeatenLevelTransform";
+            _edit = false;
+            float completionTime = playerController.GetTime();
+            string formattedCompletionTime = LevelFunctions.instance.GetFormattedTimeFromFloat(completionTime);
+            UIManager.instance.GetTextElementFromDict("BeatTime").text = $"Time:\n{formattedCompletionTime}";
+            int coinsCollected = playerController.GetCoins();
+            UIManager.instance.GetTextElementFromDict("BeatCoins").text = $"Coins: {coinsCollected}";
+            string _pathToLevel = Path.Combine(path, SceneData.loadedLevelName + ".json");
+            LevelData _levelData = LevelFunctions.instance.GetJsonFromPath(_pathToLevel);
+            float prevCompletionTime = _levelData.fastestTime;
+            int prevCoinsCollected = _levelData.coinsCollected;
+            if ((prevCompletionTime == 0) || (completionTime < prevCompletionTime)) LevelFunctions.instance.UpdateFieldInJson(_pathToLevel, "fastestTime", "float", newFloat: completionTime);
+            if (coinsCollected > prevCoinsCollected) LevelFunctions.instance.UpdateFieldInJson(_pathToLevel, "coinsCollected", "int", newFloat: coinsCollected);
         }
-        else if(SceneData.loadBehaviour == "Clear")
+        else if (SceneData.loadBehaviour == "Clear")
         {
             path = Path.Combine(Application.persistentDataPath, "Levels", "Edit");
             boolToFlip = "isCleared";
+            uiElementToActivate = "LevelCleared";
+            levelIconTransform = "ClearedLevelTransform";
+            _edit = true;
         }
-        else 
+        else
         {
             Debug.LogWarning($"Finish flag hit in: {SceneData.loadBehaviour}");
             return;
         }
 
+        //Update variables in json
         string levelName = SceneData.loadedLevelName;
         string pathToLevel = Path.Combine(path, levelName + ".json");
         string json = File.ReadAllText(pathToLevel);
 
         JObject obj = JObject.Parse(json);
-
         obj[boolToFlip] = true;
-
         File.WriteAllText(Path.Combine(path, levelName + ".json"), obj.ToString(Formatting.Indented));
-        UIManager.instance.ToggleUIElement("LevelCleared", true);
-        UIManager.instance.InstantiateLevelObject(UIManager.instance.GetUIElementFromDict("ClearedLevelTransform").transform, levelName, path);
+
+        UIManager.instance.ToggleUIElement(uiElementToActivate, true);
+        UIManager.instance.InstantiateLevelObject(UIManager.instance.GetUIElementFromDict(levelIconTransform).transform, levelName, path, _edit, true);
     }
 
     public void UploadLevel(TMP_InputField _textInput)

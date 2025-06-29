@@ -139,11 +139,14 @@ public class LevelBuilder : MonoBehaviour
         UIManager.instance.ToggleUIElement("SelectedBlockButton", !_start);
         UIManager.instance.ToggleUIElement("ClearingEscMenu", _start);
         UIManager.instance.ToggleUIElement("BlockSelect", false);
+        UIManager.instance.ToggleUIElement("Coins", _start);
 
         //gridRenderer.gameObject.SetActive(!_start);
         UIManager.instance.ToggleUIElement("GridRenderer", !_start);
-    
-        playerController.enabled = _start;
+
+        if (_start) playerController.StartPlaying();
+        else playerController.StopPlaying();
+        
         playingLevel = _start;
     }
 }

@@ -97,17 +97,23 @@ public class MenuButtons : MonoBehaviour
         else showLevels.UnloadLevels();
     }
 
+    public void DisableUploadScreen()
+    {
+        UIManager.instance.ToggleUIElement("UploadLevel", false);
+    }
+
     public void EditLevel(bool _edit)
     {
         UIManager.instance.ToggleUIElement("Play/Edit", _edit);
         UIManager.instance.ToggleUIElement("Create", !_edit);
 
-        if(_edit) showLevels.LoadLevels(true);
+        if (_edit) showLevels.LoadLevels(true);
         else showLevels.UnloadLevels();
     }
 
     public void StartLevelClearing(bool _start)
     {
+        SceneData.loadBehaviour = "Clear";
         levelBuilder.StartLevelClearing(_start);
     }
 

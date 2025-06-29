@@ -1,3 +1,1 @@
--test edit, clear play
--sometimes logged location of trigger tiles is wrong, preventing necessary triggers
--add level beaten screen with coins and timer (add timer)
+-tilebounds still jank

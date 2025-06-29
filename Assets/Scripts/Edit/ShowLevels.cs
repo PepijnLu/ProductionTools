@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -65,13 +67,13 @@ public class ShowLevels : MonoBehaviour
             bool beatenOrCleared = false;
 
             
-            //Instantiate new level object
-            ChooseLevelButton newButton = UIManager.instance.InstantiateLevelObject(gridLayout.transform, _data.levelName, path);
             //Check if the level has been beaten/cleared
             if(_edit) beatenOrCleared = levelCleared;
             else beatenOrCleared = _data.isBeaten;
+            //Instantiate new level object
+            ChooseLevelButton newButton = UIManager.instance.InstantiateLevelObject(gridLayout.transform, _data.levelName, path, _edit, beatenOrCleared);
             //Set the right icons/references on the object
-            newButton.SetCorrectIcons(_edit, beatenOrCleared, this);
+            newButton.SetCorrectIcons(_edit, beatenOrCleared, this, _data.fastestTime, _data.coinsCollected);
             //Add it to the list for clearing later
             loadedLevelButtons.Add(newButton.gameObject);
 
@@ -87,6 +89,47 @@ public class ShowLevels : MonoBehaviour
         scrollRect.verticalNormalizedPosition = 1f;
 
         SceneData.loadedLevelName = "";
+    }
+
+    public void UploadLevel(TMP_InputField _textInput)
+    {
+        string oldLevelName = SceneData.loadedLevelName;
+        string newLevelName = _textInput.text;
+
+        if (newLevelName == "") return;
+
+        string sourcePath = Path.Combine(Application.persistentDataPath, "Levels", "Edit");
+        string destinationPath = Path.Combine(Application.persistentDataPath, "Levels", "Play");
+
+        string sourceLevelPath = Path.Combine(sourcePath, oldLevelName + ".json");
+        string destinationLevelPath = Path.Combine(destinationPath, newLevelName + ".json");
+
+        string sourceThumbnailPath = Path.Combine(sourcePath, "Thumbnails", oldLevelName + ".png");
+        string destinationThumbnailPath = Path.Combine(destinationPath, "Thumbnails", newLevelName + ".png");
+
+        if (File.Exists(destinationLevelPath))
+        {
+            Debug.LogWarning("File already exists: " + destinationLevelPath);
+            StartCoroutine(UIManager.instance.ShowTextForSeconds("UP_NameInUse", "name already in use!", 2f));
+        }
+        else
+        {
+            //Copy the level to "Play" folder
+            File.Copy(sourceLevelPath, destinationLevelPath);
+
+            //Update the level name
+            string json = File.ReadAllText(destinationLevelPath);
+            JObject obj = JObject.Parse(json);
+            obj["levelName"] = newLevelName;
+            File.WriteAllText(destinationLevelPath, obj.ToString(Formatting.Indented));
+
+            //Duplicate the thumbnail
+            File.Copy(sourceThumbnailPath, destinationThumbnailPath);
+
+            SceneData.menuToLoad = "Play/Edit";
+            SceneData.levelsToLoad = "Play";
+            SceneManager.LoadScene("MainMenu");
+        }
     }
 
     public void UnloadLevels()
@@ -143,9 +186,10 @@ public class ShowLevels : MonoBehaviour
             deletingLevel = true;
             UIManager.instance.ToggleUIElement("DeleteLevel?", true);
 
-            ChooseLevelButton newButton = UIManager.instance.InstantiateLevelObject(deleteLevel, _levelName, levelPath);
+            ChooseLevelButton newButton = UIManager.instance.InstantiateLevelObject(deleteLevel, _levelName, levelPath, false, false);
+            newButton.DisableIcons();
 
-            while(confirmDelete == -1)
+            while (confirmDelete == -1)
             {
                 yield return null;
             }

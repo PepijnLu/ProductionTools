@@ -4,31 +4,50 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Tilemaps;
 [System.Serializable]
-public class TileEvent
+public class TileInfo
 {
     public TileBase tile;
-    public UnityEvent action;
+    public string actionToInvoke;
+    public int relevantValue;
 }
 
 public class TileLogic : MonoBehaviour
 {
     public static TileLogic instance;
-    [SerializeField] List<TileEvent> tileEvents;
-    private Dictionary<TileBase, UnityEvent> eventLookup;
+    [SerializeField] List<TileInfo> tileInfo;
+    public delegate void TileActionHandler(TileBase tile, Tilemap tilemap, Vector3Int cellPos, IInvoker invoker, float value);
+    private Dictionary<TileBase, TileInfo> tileInfoLookup = new();
+    private Dictionary<string, TileActionHandler> delegateLookup = new();
     void Awake()
     {
         instance = this;
+        InstantiateTileActions();
     }
     void Start()
     {
-        eventLookup = new();
-        foreach (var entry in tileEvents) eventLookup.Add(entry.tile, entry.action);
-        
+        foreach (TileInfo _info in tileInfo) tileInfoLookup.Add(_info.tile, _info);
+
     }
 
-    public void InvokeTileAction(TileBase _tile, GameObject _invoker)
+    public void InvokeTileAction(TileBase _tile, Tilemap _tilemap, Vector3Int _cellPos, IInvoker _invoker)
     {
-        UnityEvent action = eventLookup[_tile];
-        action.Invoke();
+        Debug.Log($"Tile: {_tile.name} on {_tilemap} at {_cellPos} was triggered by {_invoker}");
+        TileInfo tileInfo = tileInfoLookup[_tile];  
+        TileActionHandler actionToInvoke = delegateLookup[tileInfo.actionToInvoke];
+        actionToInvoke.Invoke(_tile, _tilemap, _cellPos, _invoker, tileInfo.relevantValue);
+    }
+
+    void InstantiateTileActions()
+    {
+        delegateLookup["Finish"] = (tile, tilemap, cellPos, invoker, value) =>
+        {
+            if (invoker.IsPlayer()) SaveAndLoad.instance.ClearLevel();
+        };
+        
+        delegateLookup["CollectCoin"] = (tile, tilemap, cellPos, invoker, value) =>
+        {
+            invoker.CollectCoin(tilemap, cellPos);
+        };
     }
 }
+
