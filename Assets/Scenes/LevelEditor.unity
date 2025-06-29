@@ -6075,8 +6075,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1239927925}
-        m_TargetAssemblyTypeName: SaveAndLoad, Assembly-CSharp
+      - m_Target: {fileID: 1899146671}
+        m_TargetAssemblyTypeName: MenuButtons, Assembly-CSharp
         m_MethodName: UploadLevel
         m_Mode: 2
         m_Arguments:

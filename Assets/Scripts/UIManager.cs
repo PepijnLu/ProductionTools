@@ -219,7 +219,9 @@ public class UIManager : MonoBehaviour
     public IEnumerator ShowTextForSeconds(string _element, string _text, float duration)
     {
         TextMeshProUGUI _tmpro = GetTextElementFromDict(_element);
+        if (_tmpro == null) Debug.LogWarning("Text element not found");
         _tmpro.text = _text;
+        Debug.Log($"Set {_tmpro.gameObject.name} text to {_text}");
         yield return new WaitForSeconds(duration);
         _tmpro.text = "";
 

@@ -1905,8 +1905,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 252595129}
-        m_TargetAssemblyTypeName: ShowLevels, Assembly-CSharp
+      - m_Target: {fileID: 1690126194}
+        m_TargetAssemblyTypeName: MenuButtons, Assembly-CSharp
         m_MethodName: UploadLevel
         m_Mode: 2
         m_Arguments:
@@ -3741,6 +3741,7 @@ MonoBehaviour:
   - {fileID: 935064421}
   textElements:
   - {fileID: 1819918942}
+  - {fileID: 1433789970}
   selectPanelText: {fileID: 0}
   chooseLevelButtonPrefab: {fileID: 3404257496675831525, guid: faade3ba7751a39429d4117fd4936ba2, type: 3}
   panelLeftArrow: {fileID: 0}

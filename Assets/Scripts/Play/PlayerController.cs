@@ -136,7 +136,7 @@ public class PlayerController : MonoBehaviour, IInvoker
         return true;
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+    void OnTriggerStay2D(Collider2D other)
     {
         if (other.TryGetComponent(out Tilemap tilemap))
         {
@@ -157,7 +157,6 @@ public class PlayerController : MonoBehaviour, IInvoker
                     {
                         Debug.Log($"Tile touched at {cellPos}: {tile.name}");
                         TileLogic.instance.InvokeTileAction(tile, tilemap, cellPos, this);
-                        return; // Or continue if you want to process multiple
                     }
                 }
             }

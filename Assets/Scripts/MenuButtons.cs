@@ -102,6 +102,11 @@ public class MenuButtons : MonoBehaviour
         UIManager.instance.ToggleUIElement("UploadLevel", false);
     }
 
+    public void UploadLevel(TMP_InputField _textInput)
+    {
+        LevelFunctions.instance.UploadLevel(_textInput);
+    }
+
     public void EditLevel(bool _edit)
     {
         UIManager.instance.ToggleUIElement("Play/Edit", _edit);
