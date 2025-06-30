@@ -24,7 +24,7 @@ public class ChooseLevelButton : MonoBehaviour, IPointerEnterHandler, IPointerEx
         //From the edit meun
         if (_edit)
         {
-            buttonsToShow = editButtons;
+            if(showLevels != null) buttonsToShow = editButtons;
             clearedImg.gameObject.SetActive(true);
             levelPath = Path.Combine(Application.persistentDataPath, "Levels", "Edit");
             if (_clearedOrBeaten)
@@ -37,7 +37,7 @@ public class ChooseLevelButton : MonoBehaviour, IPointerEnterHandler, IPointerEx
         //From the play menu
         else
         {
-            buttonsToShow = playButtons;
+            if(showLevels != null) buttonsToShow = playButtons;
             beatenImg.gameObject.SetActive(true);
             levelPath = Path.Combine(Application.persistentDataPath, "Levels", "Play");
 

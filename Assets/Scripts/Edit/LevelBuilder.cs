@@ -23,7 +23,7 @@ public class LevelBuilder : MonoBehaviour
         tilemaps = new()
         {
             ["Base Blocks"] = solidTileMap,
-            ["Items"] = triggerTilemap,
+            ["Interactables"] = triggerTilemap,
         };
 
         TileLogic.OnClearLevel += ClearLevel;
@@ -161,6 +161,18 @@ public class LevelBuilder : MonoBehaviour
 
     public void StartLevelClearing(bool _start, bool _clearing)
     {
+        bool hasFinishFlag = false;
+        foreach(TileData _tileData in SaveAndLoad.instance.LevelData.tiles)
+        {
+            if(_tileData.tileType == "Finish") hasFinishFlag = true;
+        }
+        if(!hasFinishFlag) 
+        {
+            StartCoroutine(UIManager.instance.ShowTextForSeconds("NoFinishFlag", "add a finish flag first!", 2f));
+            return;
+        }
+
+
         UIManager.instance.ToggleUIElement("EscapeMenu", false);
         UIManager.instance.ToggleUIElement("InitialEscMenu", !_start);
         UIManager.instance.ToggleUIElement("SelectedBlockButton", !_start);
@@ -170,6 +182,10 @@ public class LevelBuilder : MonoBehaviour
 
         UIManager.instance.ToggleUIElement("LivesButtons", !_start);
         UIManager.instance.ToggleUIElement("TimerButtons", !_start); 
+
+        UIManager.instance.GetUIElementFromDict("ParallaxBackground").transform.localPosition = new Vector3(-7.48f, -0.62f, 60);
+        UIManager.instance.GetUIElementFromDict("bg1").transform.localPosition = new Vector3(3.6f, 0, 0);
+        UIManager.instance.GetUIElementFromDict("bg2").transform.localPosition = new Vector3(28.8999996f, 0, 0);
 
         if(_clearing) 
         {

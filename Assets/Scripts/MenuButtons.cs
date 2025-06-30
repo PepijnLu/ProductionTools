@@ -54,11 +54,13 @@ public class MenuButtons : MonoBehaviour
 
     public void ChangeLevelHealth(int _increment)
     {
+        if(UIManager.instance.inMenu) return;
         levelBuilder.ChangeLevelVariable("health", _increment);
     }
 
     public void ChangeLevelTime(int _increment)
     {
+        if(UIManager.instance.inMenu) return;
         levelBuilder.ChangeLevelVariable("timer", _increment);
     }
 

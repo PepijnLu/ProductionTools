@@ -40,7 +40,7 @@ public class SaveAndLoad : MonoBehaviour
         tilemaps = new()
         {
             ["Base Blocks"] = groundMap,
-            ["Items"] = triggerMap,
+            ["Interactables"] = triggerMap,
         };
 
         LoadAllTilePrefabs("Tiles"); 
@@ -116,35 +116,33 @@ public class SaveAndLoad : MonoBehaviour
 
     public void SaveTileData(string _tileBase, Vector3Int _position, string _tileMap)
     {
+        //Handle old data
         if(tileDataByPosition.ContainsKey(_position))
         {
             TileData dataToUpdate = tileDataByPosition[_position];
-
-            Debug.Log($"Passed tilemap check");
-            if(_tileBase == "null")
+            if(dataToUpdate.tileMap != "StartingTiles")
             {
                 Debug.Log($"Removing Tile from LevelData at {_position}");
+                if(dataToUpdate.tileMap != _tileMap) tilemaps[dataToUpdate.tileMap].SetTile(_position, null);
                 tileDataByPosition.Remove(_position);
                 levelData.tiles.Remove(dataToUpdate);
-                return;
+                if(_tileBase == "null") return;
             }
-            else
-            {
-                tileDataByPosition.Remove(_position);
-                levelData.tiles.Remove(dataToUpdate);
-            }
-        
         }
 
-        TileData newTileData = new()
+        //Create new tile data
+        if(_tileBase != "null")
         {
-            tileType = _tileBase,
-            position = _position,
-            tileMap = _tileMap
-        };
+            TileData newTileData = new()
+            {
+                tileType = _tileBase,
+                position = _position,
+                tileMap = _tileMap
+            };
 
-        levelData.tiles.Add(newTileData);
-        tileDataByPosition.Add(_position, newTileData);
+            levelData.tiles.Add(newTileData);
+            tileDataByPosition.Add(_position, newTileData);
+        }
     }
 
     public void SaveLevel(string _levelName)
@@ -155,13 +153,19 @@ public class SaveAndLoad : MonoBehaviour
         levelData.playerStartX = player.transform.position.x;
         levelData.playerStartX = player.transform.position.y;
 
-        string json = JsonConvert.SerializeObject(levelData, Formatting.Indented);
         string path = Path.Combine(Application.persistentDataPath, "Levels", "Edit", _levelName + ".json");
 
+        LevelData oldLevelData = null;
         if (File.Exists(path))
         {
+            oldLevelData = LevelFunctions.instance.GetJsonFromPath(path);
             Debug.LogWarning("File already exists: " + path);
         }
+
+        if(oldLevelData == levelData) return;
+
+        levelData.isCleared = false;
+        string json = JsonConvert.SerializeObject(levelData, Formatting.Indented);
 
         File.WriteAllText(path, json);
         Debug.Log("Level saved to " + path);
@@ -178,7 +182,7 @@ public class SaveAndLoad : MonoBehaviour
     public void BuildLevel()
     {
         if(levelData == null) return;
-
+        tileDataByPosition = new();
         foreach(var kvp in tilemaps)
         {
             kvp.Value.ClearAllTiles();
@@ -191,13 +195,15 @@ public class SaveAndLoad : MonoBehaviour
                 if(tile.tileType != "null") 
                 {
                     tilemaps[tile.tileMap].SetTile(tile.position, _tileBase);
+                    tileDataByPosition.Add(tile.position, tile);
                 }
                 else tilemaps[tile.tileMap].SetTile(tile.position, null);
             }
-            else
+            else if(tile.tileType == "null")
             {
-                Debug.LogWarning("Unknown tile type: " + tile.tileType);
+                tilemaps[tile.tileMap].SetTile(tile.position, null);
             }
+            else Debug.LogWarning("Unknown tile type: " + tile.tileType);
         }
         player.transform.position = new Vector2(levelData.playerStartX, levelData.playerStartY);
 

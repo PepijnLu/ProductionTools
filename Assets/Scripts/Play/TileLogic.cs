@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -15,10 +16,12 @@ public class TileLogic : MonoBehaviour
 {
     public static TileLogic instance;
     [SerializeField] List<TileInfo> tileInfo;
+    bool isSpikeOnCooldown;
     public delegate void TileActionHandler(TileBase tile, Tilemap tilemap, Vector3Int cellPos, IInvoker invoker, float value);
     private Dictionary<TileBase, TileInfo> tileInfoLookup = new();
     private Dictionary<string, TileActionHandler> delegateLookup = new();
     public static event Action OnClearLevel;
+    [SerializeField] float spikeCooldown;
     void Awake()
     {
         instance = this;
@@ -49,6 +52,21 @@ public class TileLogic : MonoBehaviour
         {
             invoker.CollectCoin(tilemap, cellPos);
         };
+
+        delegateLookup["TakeDamage"] = (tile, tilemap, cellPos, invoker, value) =>
+        {
+            if(!isSpikeOnCooldown) 
+            {
+                invoker.TakeDamage((int)value);
+                isSpikeOnCooldown = true;
+                StartCoroutine(SpikeCooldown());
+            }
+        };
+    }
+
+    IEnumerator SpikeCooldown()
+    {
+        yield return new WaitForSeconds(spikeCooldown);
+        isSpikeOnCooldown = false;
     }
 }
-

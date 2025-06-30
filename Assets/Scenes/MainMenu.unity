@@ -3729,6 +3729,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5684dc642ac83ea4b8936bd471a79be3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  backgroundScrollSpeed: 0.0005
   inMenu: 0
   uiElements:
   - {fileID: 1521250249}

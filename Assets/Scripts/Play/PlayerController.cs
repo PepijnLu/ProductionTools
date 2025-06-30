@@ -6,7 +6,7 @@ using UnityEngine.Tilemaps;
 
 public class PlayerController : MonoBehaviour, IInvoker
 {
-    bool playing;
+    public bool playing;
 
     [Header("Movement")]
     public float moveSpeed = 5f;
@@ -34,6 +34,7 @@ public class PlayerController : MonoBehaviour, IInvoker
     void Start()
     {
         if(rb == null) rb = GetComponent<Rigidbody2D>();
+        rb.sleepMode = RigidbodySleepMode2D.NeverSleep;
     }
     void Update()
     {
@@ -152,11 +153,16 @@ public class PlayerController : MonoBehaviour, IInvoker
     void FixedUpdate()
     {
         // Move the player
-        rb.linearVelocity = new Vector2(moveInput * moveSpeed, rb.linearVelocity.y);
+        float xForce = moveInput * moveSpeed;
+        rb.linearVelocity = new Vector2(xForce, rb.linearVelocity.y);
+        UIManager.instance.MoveBackground(xForce);
+
         animator.SetFloat("velocity", Mathf.Abs(rb.linearVelocity.x));
 
         // Ground check
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+
+        if(transform.position.y < -1) Die();
     }
 
     void OnDrawGizmosSelected()
@@ -173,6 +179,17 @@ public class PlayerController : MonoBehaviour, IInvoker
         coinsCollected++;
         _tilemap.SetTile(_cellPos, null);
         UIManager.instance.GetTextElementFromDict("CoinText").text = $"{coinsCollected}";
+    }
+
+    void IInvoker.TakeDamage(int _value)
+    {
+        health -= _value;
+        UIManager.instance.DisplayHealthFromInt(health, false);
+
+        if(health <= 0)
+        {
+            Die();
+        }
     }
 
     bool IInvoker.IsPlayer()

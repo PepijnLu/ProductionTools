@@ -17,6 +17,7 @@ public class UIManager : MonoBehaviour
     Dictionary<string, TextMeshProUGUI> textElementsDict;
     Dictionary<string, Sprite> ruleTilesDefaultSpritesDict;
     Image selectedTile;
+    [SerializeField] float backgroundScrollSpeed;
     public bool inMenu;
     [Header("UI Elements")]
     [SerializeField] List<GameObject> uiElements;
@@ -72,6 +73,12 @@ public class UIManager : MonoBehaviour
         ToggleUIElement("BlockSelect", !blockSelect.activeSelf);
         ToggleUIElement("GridRenderer", !blockSelect.activeSelf);
         inMenu = blockSelect.activeSelf;
+    }
+
+    public void MoveBackground(float _xForce)
+    {
+        GetUIElementFromDict("bg1").transform.position += new Vector3(_xForce * backgroundScrollSpeed, 0, 0);
+        GetUIElementFromDict("bg2").transform.position += new Vector3(_xForce * backgroundScrollSpeed, 0, 0);
     }
 
     public GameObject GetUIElementFromDict(string _element)
@@ -150,8 +157,8 @@ public class UIManager : MonoBehaviour
         //Ground tiles
         SetupTileMenu(GetUIElementFromDict("Base Blocks").transform, groundTiles);
 
-        //Item tiles
-        SetupTileMenu(GetUIElementFromDict("Items").transform, itemTiles);
+        //Interactable tiles
+        SetupTileMenu(GetUIElementFromDict("Interactables").transform, itemTiles);
     }
 
     void SetupTileMenu(Transform _panel, List<TileBase> _tiles)
