@@ -12,13 +12,7 @@ public class MenuButtons : MonoBehaviour
     [SerializeField] ShowLevels showLevels;
     public void ToggleBlockSelecter()
     {
-
-        GameObject blockSelect = UIManager.instance.GetUIElementFromDict("BlockSelect");
-        if(UIManager.instance.inMenu && !blockSelect.activeSelf) return;
-
-        UIManager.instance.ToggleUIElement("BlockSelect", !blockSelect.activeSelf);
-        UIManager.instance.ToggleUIElement("GridRenderer", !blockSelect.activeSelf);
-        UIManager.instance.inMenu = blockSelect.activeSelf;
+        UIManager.instance.ToggleBlockSelector();
     }
 
     public void ChangeBlockPage(int _increment)
@@ -29,11 +23,6 @@ public class MenuButtons : MonoBehaviour
     public void SaveLevel()
     {
         SaveAndLoad.instance.SaveLevel(SceneData.loadedLevelName);
-    }
-
-    public void LoadLevel()
-    {
-        SceneManager.LoadScene("LevelEditor");
     }
 
     public void SetMenuToLoad(string _menuToLoad)
@@ -61,6 +50,22 @@ public class MenuButtons : MonoBehaviour
     {
         UIManager.instance.ToggleUIElement("ChooseName", _create);
         UIManager.instance.ToggleUIElement("NormalButtons", !_create);
+    }
+
+    public void ChangeLevelHealth(int _increment)
+    {
+        levelBuilder.ChangeLevelVariable("health", _increment);
+    }
+
+    public void ChangeLevelTime(int _increment)
+    {
+        levelBuilder.ChangeLevelVariable("timer", _increment);
+    }
+
+    public void RetryLevel(bool _clearing)
+    {
+        levelBuilder.StartLevelClearing(false, _clearing);
+        levelBuilder.StartLevelClearing(true, _clearing);
     }
 
     public void CreateNewLevel(TMP_InputField _inputField)
@@ -119,7 +124,7 @@ public class MenuButtons : MonoBehaviour
     public void StartLevelClearing(bool _start)
     {
         SceneData.loadBehaviour = "Clear";
-        levelBuilder.StartLevelClearing(_start);
+        levelBuilder.StartLevelClearing(_start, true);
     }
 
     public void ConfirmDelete(bool _confirm)

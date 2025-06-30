@@ -1,5 +1,7 @@
+using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 
 public class PlayerController : MonoBehaviour, IInvoker
@@ -15,21 +17,24 @@ public class PlayerController : MonoBehaviour, IInvoker
     public float groundCheckRadius = 0.2f;
     public LayerMask groundLayer;
 
-    private Rigidbody2D rb;
+    [SerializeField] private Rigidbody2D rb;
     private bool isGrounded;
     private float moveInput;
     [SerializeField] Animator animator;
     bool facingLeft;
+    int timeToComplete;
+    Vector2 startPosition;
 
-    [Header("Stats")]
+    //Stats
+    int maxHealth;
+    int health;
     int coinsCollected;
     float timer;
 
-    void Awake()
+    void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
+        if(rb == null) rb = GetComponent<Rigidbody2D>();
     }
-
     void Update()
     {
         HandleInputs();
@@ -40,7 +45,6 @@ public class PlayerController : MonoBehaviour, IInvoker
     {
         if (!playing)
         {
-            if (rb.linearVelocity != Vector2.zero) KillMovement();
             return;
         }
         // Read movement input
@@ -53,14 +57,16 @@ public class PlayerController : MonoBehaviour, IInvoker
             rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
         }
 
-        if((rb.linearVelocity.x < 0) && (!facingLeft))
+        Debug.Log($"linVelX: {rb.linearVelocity.x}");
+
+        if((rb.linearVelocity.x < -0.1f) && (!facingLeft))
         {
             facingLeft = true;
             Vector3 _scale = transform.localScale;
             _scale.x = Mathf.Abs(_scale.x);
             transform.localScale = _scale;
         }
-        if((rb.linearVelocity.x > 0) && facingLeft)
+        if((rb.linearVelocity.x > 0.1f) && facingLeft)
         {
             facingLeft = false;
             Vector3 _scale = transform.localScale;
@@ -75,12 +81,18 @@ public class PlayerController : MonoBehaviour, IInvoker
         timer += Time.deltaTime;
 
         //Set to level time
-        float timeRemaining = 300 - timer;
+        float timeRemaining = timeToComplete - timer;
         UIManager.instance.GetTextElementFromDict("TimerText").text = $"{Mathf.CeilToInt(timeRemaining)}";
+
+        if(timeRemaining <= 0) Die();
     }
 
     public void StartPlaying()
     {
+        timeToComplete = SaveAndLoad.instance.LevelData.timeToComplete;
+        maxHealth = SaveAndLoad.instance.LevelData.maxPlayerHealth;
+        health = maxHealth;
+        startPosition = new Vector2(SaveAndLoad.instance.LevelData.playerStartX, SaveAndLoad.instance.LevelData.playerStartY);
         timer = 0;
         coinsCollected = 0;
         playing = true;
@@ -88,6 +100,17 @@ public class PlayerController : MonoBehaviour, IInvoker
 
     public void StopPlaying()
     {
+        transform.position = startPosition;
+        health = maxHealth;
+        UIManager.instance.DisplayHealthFromInt(health, true);
+        UIManager.instance.GetTextElementFromDict("TimerText").text = $"{timeToComplete}";
+        animator.SetBool("isDead", false);
+        transform.rotation = Quaternion.Euler(0, 0, 0);
+        facingLeft = false;
+        Vector3 _scale = transform.localScale;
+        _scale.x = -Mathf.Abs(_scale.x);
+        transform.localScale = _scale;
+        
         playing = false;
     }
 
@@ -103,6 +126,27 @@ public class PlayerController : MonoBehaviour, IInvoker
     public void KillMovement()
     {
         rb.linearVelocity = Vector2.zero;
+    }
+
+    public void Die()
+    {
+        playing = false;
+        animator.SetBool("isDead", true);
+        moveInput = 0;
+        KillMovement();
+
+        if(facingLeft) transform.rotation = Quaternion.Euler(0, 0, -90);
+        else transform.rotation = Quaternion.Euler(0, 0, 90);
+
+        if(SceneData.loadBehaviour == "Clear")
+        {
+            UIManager.instance.ToggleUIElement("ClearDeathScreen", true);
+        }
+        else if(SceneData.loadBehaviour == "Play")
+        {
+            UIManager.instance.ToggleUIElement("PlayDeathScreen", true);
+        }
+        else throw new Exception($"Player died in unknown behaviour: {SceneData.loadBehaviour}");
     }
 
     void FixedUpdate()

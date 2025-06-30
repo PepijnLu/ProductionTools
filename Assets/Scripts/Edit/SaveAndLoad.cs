@@ -10,68 +10,48 @@ using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
-public static class SceneData
-{
-    public static string loadedLevelName = "";
-    public static string menuToLoad = "MainMenu";
-    public static string levelsToLoad;
-    public static string loadBehaviour;
-}
-public class LevelData
-{
-    public string levelName;
-    public List<TileData> tiles = new();
-    public bool isCleared, isBeaten;
-    public float timeToComplete = 300, fastestTime;
-    public float playerStartX = 2.5f, playerStartY = 2.5f;
-    public int coinsCollected;
-}
-
-public struct TileData
-{
-    public string tileMap;
-    public string tileType;
-    public Vector3Int position;
-}
-
 public class SaveAndLoad : MonoBehaviour
 {
     [SerializeField] string levelToLoadDebug;
     Dictionary<Vector3Int, TileData> tileDataByPosition = new();
     public static SaveAndLoad instance;
-    LevelData levelData;
+    private LevelData levelData;
+    public LevelData LevelData
+    {
+        get { return levelData; }
+        set { levelData = value; }
+    }
+    string pathToLevel;
     Dictionary<string, TileBase> tilePrefabs;
     Dictionary<string, Tilemap> tilemaps;
-    [SerializeField] Tilemap groundMap, triggerMap;
+    [SerializeField] Tilemap groundMap, triggerMap, startingTilemap;
     [SerializeField] Camera thumbnailCamera;
     [SerializeField] RenderTexture thumbnailRT;
     [SerializeField] GridRenderer gridRenderer;
     [SerializeField] GameObject player;
-    [SerializeField] Vector2 playerStartPosition;
     [SerializeField] PlayerController playerController;
     [SerializeField] LevelBuilder levelBuilder;
 
     void Awake()
     {
         instance = this;
-        levelData = new();
+
         tilePrefabs = new();
         tilemaps = new()
         {
             ["Base Blocks"] = groundMap,
-            ["Items"] = triggerMap
+            ["Items"] = triggerMap,
         };
 
-        LoadAllTilePrefabs("Tiles");
+        LoadAllTilePrefabs("Tiles"); 
 
-        if(SceneData.loadedLevelName != "")
-        {
-            LoadAndBuild(SceneData.loadedLevelName + ".json");
-        }
-        else if(levelToLoadDebug != "")
-        {
-            LoadAndBuild(levelToLoadDebug + ".json");
-        }
+        string editOrPlay;
+        if(SceneData.loadBehaviour == "Play") editOrPlay = "Play";
+        else editOrPlay = "Edit";
+
+
+        pathToLevel = Path.Combine(Application.persistentDataPath, "Levels", editOrPlay, SceneData.loadedLevelName + ".json");
+        levelData = LevelFunctions.instance.GetJsonFromPath(pathToLevel);  
     }
 
     void Start()
@@ -79,15 +59,39 @@ public class SaveAndLoad : MonoBehaviour
         switch(SceneData.loadBehaviour)
         {
             case "Edit":
-
+                if(levelData == null) SetupEditor(false);
+                else SetupEditor(true);
                 break;
             case "Clear":
-                levelBuilder.StartLevelClearing(true);
+                levelBuilder.StartLevelClearing(true, true);
+                SetupEditor(true);
                 break;
             case "Play":
-                levelBuilder.StartLevelClearing(true);
+                levelBuilder.StartLevelClearing(true, false);
+                SetupEditor(true);
                 break;
 
+        }
+    }
+    void SetupEditor(bool _isExistingLevel)
+    {
+        if(_isExistingLevel)
+        {
+            Debug.Log($"Level loaded: {levelData.levelName}");
+            BuildLevel();
+        }
+        else
+        {
+            Debug.Log($"New level created: {SceneData.loadedLevelName}");
+            levelData = new();
+
+            foreach (Transform _child in startingTilemap.transform)
+            {
+                Vector3Int cellPosition = startingTilemap.WorldToCell(_child.position);
+                levelBuilder.CreateTile(cellPosition, startingTilemap);
+            }
+
+            SaveLevel(SceneData.loadedLevelName);
         }
     }
     void LoadAllTilePrefabs(string folder)
@@ -145,12 +149,11 @@ public class SaveAndLoad : MonoBehaviour
 
     public void SaveLevel(string _levelName)
     {
-        playerStartPosition = new Vector2(player.transform.position.x, player.transform.position.y);
         if(SceneData.loadedLevelName == "") return;
 
         levelData.levelName = _levelName;   
-        levelData.playerStartX = playerStartPosition.x;
-        levelData.playerStartX = playerStartPosition.y;
+        levelData.playerStartX = player.transform.position.x;
+        levelData.playerStartX = player.transform.position.y;
 
         string json = JsonConvert.SerializeObject(levelData, Formatting.Indented);
         string path = Path.Combine(Application.persistentDataPath, "Levels", "Edit", _levelName + ".json");
@@ -172,103 +175,22 @@ public class SaveAndLoad : MonoBehaviour
         gridRenderer.gameObject.SetActive(true);
     }
 
-    public void ClearLevel()
+    public void BuildLevel()
     {
-        //Disable player movement
-        playerController.KillMovement();
-        playerController.enabled = false;
-        
+        if(levelData == null) return;
 
-        //Variables in json to update
-        string path;
-        string boolToFlip;
-        //Depends on if youre clearing or playing
-        string uiElementToActivate;
-        string levelIconTransform;
-        bool _edit;
-
-        //Update correct things based on playing vs clearing
-        if (SceneData.loadBehaviour == "Play")
+        foreach(var kvp in tilemaps)
         {
-            path = Path.Combine(Application.persistentDataPath, "Levels", "Play");
-            boolToFlip = "isBeaten";
-            uiElementToActivate = "LevelBeaten";
-            levelIconTransform = "BeatenLevelTransform";
-            _edit = false;
-            float completionTime = playerController.GetTime();
-            string formattedCompletionTime = LevelFunctions.instance.GetFormattedTimeFromFloat(completionTime);
-            UIManager.instance.GetTextElementFromDict("BeatTime").text = $"Time:\n{formattedCompletionTime}";
-            int coinsCollected = playerController.GetCoins();
-            UIManager.instance.GetTextElementFromDict("BeatCoins").text = $"Coins: {coinsCollected}";
-            string _pathToLevel = Path.Combine(path, SceneData.loadedLevelName + ".json");
-            LevelData _levelData = LevelFunctions.instance.GetJsonFromPath(_pathToLevel);
-            float prevCompletionTime = _levelData.fastestTime;
-            int prevCoinsCollected = _levelData.coinsCollected;
-            if ((prevCompletionTime == 0) || (completionTime < prevCompletionTime)) LevelFunctions.instance.UpdateFieldInJson(_pathToLevel, "fastestTime", "float", newFloat: completionTime);
-            if (coinsCollected > prevCoinsCollected) LevelFunctions.instance.UpdateFieldInJson(_pathToLevel, "coinsCollected", "int", newFloat: coinsCollected);
-        }
-        else if (SceneData.loadBehaviour == "Clear")
-        {
-            path = Path.Combine(Application.persistentDataPath, "Levels", "Edit");
-            boolToFlip = "isCleared";
-            uiElementToActivate = "LevelCleared";
-            levelIconTransform = "ClearedLevelTransform";
-            _edit = true;
-        }
-        else
-        {
-            Debug.LogWarning($"Finish flag hit in: {SceneData.loadBehaviour}");
-            return;
+            kvp.Value.ClearAllTiles();
         }
 
-        //Update variables in json
-        string levelName = SceneData.loadedLevelName;
-        string pathToLevel = Path.Combine(path, levelName + ".json");
-        string json = File.ReadAllText(pathToLevel);
-
-        JObject obj = JObject.Parse(json);
-        obj[boolToFlip] = true;
-        File.WriteAllText(Path.Combine(path, levelName + ".json"), obj.ToString(Formatting.Indented));
-
-        UIManager.instance.ToggleUIElement(uiElementToActivate, true);
-        UIManager.instance.InstantiateLevelObject(UIManager.instance.GetUIElementFromDict(levelIconTransform).transform, levelName, path, _edit, true);
-    }
-
-    public void LoadAndBuild(string fileName)
-    {
-        LevelData savedLevel = LoadLevel(fileName);
-        BuildLevel(savedLevel);
-    }
-
-    public LevelData LoadLevel(string fileName)
-    {
-        string editOrPlay;
-        if(SceneData.loadBehaviour == "Play") editOrPlay = "Play";
-        else if(SceneData.loadBehaviour == "Edit" || SceneData.loadBehaviour == "Clear") editOrPlay = "Edit";
-        else throw new Exception($"{SceneData.loadBehaviour} not valid load behaviour");
-        string path = Path.Combine(Application.persistentDataPath, "Levels", editOrPlay, fileName);
-        if (!File.Exists(path))
-        {
-            Debug.LogWarning("File not found: " + path);
-            return null;
-        }
-
-        string json = File.ReadAllText(path);
-        return JsonConvert.DeserializeObject<LevelData>(json);
-    }
-
-    public void BuildLevel(LevelData level)
-    {
-        if(level == null) return;
-
-        foreach (TileData tile in level.tiles)
+        foreach (TileData tile in levelData.tiles)
         {
             if (tilePrefabs.TryGetValue(tile.tileType, out TileBase _tileBase))
             {
                 if(tile.tileType != "null") 
                 {
                     tilemaps[tile.tileMap].SetTile(tile.position, _tileBase);
-                    SaveTileData(_tileBase.name, tile.position, tile.tileMap);
                 }
                 else tilemaps[tile.tileMap].SetTile(tile.position, null);
             }
@@ -277,13 +199,12 @@ public class SaveAndLoad : MonoBehaviour
                 Debug.LogWarning("Unknown tile type: " + tile.tileType);
             }
         }
-        player.transform.position = new Vector2(level.playerStartX, level.playerStartY);
+        player.transform.position = new Vector2(levelData.playerStartX, levelData.playerStartY);
+
+        UIManager.instance.DisplayHealthFromInt(levelData.maxPlayerHealth, true);
+        UIManager.instance.GetTextElementFromDict("TimerText").text = $"{levelData.timeToComplete}";
     }
 
-    public void StopClearingLevel()
-    {
-        player.transform.position = playerStartPosition;
-    }
 
     public Texture2D CaptureThumbnail(Camera _thumbnailCamera, RenderTexture _renderTexture)
     {

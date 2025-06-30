@@ -93,7 +93,6 @@ public class ChooseLevelButton : MonoBehaviour, IPointerEnterHandler, IPointerEx
 
     public void DeleteLevel()
     {
-        
         StartCoroutine(showLevels.DeleteLevel(this, levelName.text, levelPath));
     }
 }

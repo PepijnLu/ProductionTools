@@ -21,6 +21,7 @@ public class UIManager : MonoBehaviour
     [Header("UI Elements")]
     [SerializeField] List<GameObject> uiElements;
     [SerializeField] List<TextMeshProUGUI> textElements;
+    [SerializeField] List<Image> healthIcons;
     [SerializeField] TextMeshProUGUI selectPanelText;
     [SerializeField] ChooseLevelButton chooseLevelButtonPrefab;
     [SerializeField] Image panelLeftArrow;
@@ -30,6 +31,11 @@ public class UIManager : MonoBehaviour
     [SerializeField] List<TileBase> itemTiles;
     [SerializeField] PickTile baseTilePicker;
     [SerializeField] List<Sprite> ruleTilesDefaultSprites;
+    [Header("Sprites")]
+    [SerializeField] Sprite fullHealthSprite;
+    [SerializeField] Sprite halfHealthSprite;
+    [SerializeField] Sprite noHealthSprite;
+
     void Awake()
     {
         instance = this;
@@ -56,6 +62,16 @@ public class UIManager : MonoBehaviour
         {
             OpenCloseMenu();
         }   
+    }
+
+    public void ToggleBlockSelector()
+    {
+        GameObject blockSelect = GetUIElementFromDict("BlockSelect");
+        if(instance.inMenu && !blockSelect.activeSelf) return;
+
+        ToggleUIElement("BlockSelect", !blockSelect.activeSelf);
+        ToggleUIElement("GridRenderer", !blockSelect.activeSelf);
+        inMenu = blockSelect.activeSelf;
     }
 
     public GameObject GetUIElementFromDict(string _element)
@@ -237,6 +253,34 @@ public class UIManager : MonoBehaviour
         else
         {
             GetUIElementFromDict("PickName").SetActive(false);
+        }
+    }
+
+    public void DisplayHealthFromInt(int _health, bool allowChangeMaxHealth)
+    {
+        int healthPoints = _health;
+
+        for(int i = 0; i < healthIcons.Count; i++)
+        {
+            Image currentHealthIcon = healthIcons[i];
+
+            if(healthPoints >= 2)
+            {
+                if(allowChangeMaxHealth) currentHealthIcon.gameObject.SetActive(true); 
+                currentHealthIcon.sprite = fullHealthSprite;
+                healthPoints -= 2;
+            }
+            else if (healthPoints == 1)
+            {
+                if(allowChangeMaxHealth) currentHealthIcon.gameObject.SetActive(true); 
+                currentHealthIcon.sprite = halfHealthSprite;
+                healthPoints -= 1;
+            }
+            else if(healthPoints == 0)
+            {
+                if(allowChangeMaxHealth) currentHealthIcon.gameObject.SetActive(false); 
+                currentHealthIcon.sprite = noHealthSprite;
+            }
         }
     }
 }

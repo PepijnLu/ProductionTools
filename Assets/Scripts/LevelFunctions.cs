@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 public class LevelFunctions : MonoBehaviour
 {
     public static LevelFunctions instance;
+
     void Awake()
     {
         if (instance != null && instance != this)
@@ -88,8 +89,12 @@ public class LevelFunctions : MonoBehaviour
 
     public LevelData GetJsonFromPath(string pathToLevel)
     {
-        string json = File.ReadAllText(pathToLevel);
-        return JsonConvert.DeserializeObject<LevelData>(json);
+        if(File.Exists(pathToLevel))
+        {
+            string json = File.ReadAllText(pathToLevel);
+            return JsonConvert.DeserializeObject<LevelData>(json);
+        }
+        else return null;
     }
 
     public string GetFormattedTimeFromFloat(float _timer)

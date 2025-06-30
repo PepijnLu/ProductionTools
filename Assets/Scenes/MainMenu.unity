@@ -3742,6 +3742,7 @@ MonoBehaviour:
   textElements:
   - {fileID: 1819918942}
   - {fileID: 1433789970}
+  healthIcons: []
   selectPanelText: {fileID: 0}
   chooseLevelButtonPrefab: {fileID: 3404257496675831525, guid: faade3ba7751a39429d4117fd4936ba2, type: 3}
   panelLeftArrow: {fileID: 0}
@@ -3750,6 +3751,9 @@ MonoBehaviour:
   itemTiles: []
   baseTilePicker: {fileID: 0}
   ruleTilesDefaultSprites: []
+  fullHealthSprite: {fileID: 0}
+  halfHealthSprite: {fileID: 0}
+  noHealthSprite: {fileID: 0}
 --- !u!4 &1011874116
 Transform:
   m_ObjectHideFlags: 0

@@ -18,6 +18,7 @@ public class TileLogic : MonoBehaviour
     public delegate void TileActionHandler(TileBase tile, Tilemap tilemap, Vector3Int cellPos, IInvoker invoker, float value);
     private Dictionary<TileBase, TileInfo> tileInfoLookup = new();
     private Dictionary<string, TileActionHandler> delegateLookup = new();
+    public static event Action OnClearLevel;
     void Awake()
     {
         instance = this;
@@ -41,7 +42,7 @@ public class TileLogic : MonoBehaviour
     {
         delegateLookup["Finish"] = (tile, tilemap, cellPos, invoker, value) =>
         {
-            if (invoker.IsPlayer()) SaveAndLoad.instance.ClearLevel();
+            if (invoker.IsPlayer()) OnClearLevel.Invoke();
         };
         
         delegateLookup["CollectCoin"] = (tile, tilemap, cellPos, invoker, value) =>

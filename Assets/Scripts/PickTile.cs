@@ -14,5 +14,6 @@ public class PickTile : MonoBehaviour
     {
         if(levelBuilder == null) levelBuilder = FindFirstObjectByType<LevelBuilder>();
         levelBuilder.PickNewTile(_tileToPick, _newSprite, tilemap);
+        UIManager.instance.ToggleBlockSelector();
     }
 }

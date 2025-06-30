@@ -1,1 +1,3 @@
--tilebounds still jank
+-code cleanup
+-block select button breaks when going back to edit mode from clearing
+

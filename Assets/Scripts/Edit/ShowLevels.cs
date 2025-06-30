@@ -13,8 +13,6 @@ public class ShowLevels : MonoBehaviour
     List<string> loadedLevels = new();
     [SerializeField] ChooseLevelButton chooseLevelButtonPrefab;
     [SerializeField] ChooseLevelButton currentActiveDropdown;
-    // [SerializeField] Transform editGridLayout, playGridLayout;
-    // [SerializeField] ScrollRect editScrollRect, playScrollRect; 
     [SerializeField] RectTransform editContent;
     [SerializeField] List<GameObject> loadedLevelButtons = new();
     [SerializeField] GridLayoutGroup gridLayout;
