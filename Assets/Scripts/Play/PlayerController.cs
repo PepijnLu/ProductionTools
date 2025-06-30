@@ -16,6 +16,7 @@ public class PlayerController : MonoBehaviour, IInvoker
     public LayerMask groundLayer;
 
     [SerializeField] private Rigidbody2D rb;
+    [SerializeField] TileLogic tileLogic;
     private bool isGrounded;
     private float moveInput;
     [SerializeField] Animator animator;
@@ -215,7 +216,7 @@ public class PlayerController : MonoBehaviour, IInvoker
                     if (tile != null)
                     {
                         Debug.Log($"Tile touched at {cellPos}: {tile.name}");
-                        TileLogic.instance.InvokeTileAction(tile, tilemap, cellPos, this);
+                        tileLogic.InvokeTileAction(tile, tilemap, cellPos, this);
                     }
                 }
             }

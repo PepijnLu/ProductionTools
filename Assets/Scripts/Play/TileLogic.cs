@@ -13,7 +13,6 @@ public class TileInfo
 
 public class TileLogic : MonoBehaviour
 {
-    public static TileLogic instance;
     [SerializeField] List<TileInfo> tileInfo;
     bool isSpikeOnCooldown;
     public delegate void TileActionHandler(TileBase tile, Tilemap tilemap, Vector3Int cellPos, IInvoker invoker, float value);
@@ -23,7 +22,6 @@ public class TileLogic : MonoBehaviour
     [SerializeField] float spikeCooldown;
     void Awake()
     {
-        instance = this;
         InstantiateTileActions();
     }
     void Start()
