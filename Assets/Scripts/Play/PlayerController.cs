@@ -1,4 +1,5 @@
 using System;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -56,8 +57,6 @@ public class PlayerController : MonoBehaviour, IInvoker
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f); // Optional: reset Y velocity
             rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
         }
-
-        Debug.Log($"linVelX: {rb.linearVelocity.x}");
 
         if((rb.linearVelocity.x < -0.1f) && (!facingLeft))
         {
@@ -183,12 +182,25 @@ public class PlayerController : MonoBehaviour, IInvoker
     void IInvoker.TakeDamage(int _value)
     {
         health -= _value;
-        UIManager.instance.DisplayHealthFromInt(health, false);
 
         if(health <= 0)
         {
             Die();
         }
+
+        UIManager.instance.DisplayHealthFromInt(health, false);
+    }
+
+    void IInvoker.Heal(int _value, Tilemap _tilemap, Vector3Int _cellPos)
+    {
+        health += _value;
+
+        if(health >= maxHealth)
+        {
+            health = maxHealth;
+        }
+        _tilemap.SetTile(_cellPos, null);
+        UIManager.instance.DisplayHealthFromInt(health, false);
     }
 
     bool IInvoker.IsPlayer()

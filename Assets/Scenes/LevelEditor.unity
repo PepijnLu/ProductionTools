@@ -8626,8 +8626,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 093337ca37a82274499d7ccae9f66107, type: 2}
   baseTilePicker: {fileID: 3782497555349575151, guid: 1f220c5378d13d247accd820a579c3c9, type: 3}
   ruleTilesDefaultSprites:
-  - {fileID: 21300000, guid: 85d0ffd5056a16f4096b451636ac7690, type: 2}
-  - {fileID: 21300000, guid: 80f47adebb62c1e4e939ae3cabaacb47, type: 2}
+  - {fileID: 21300000, guid: fc090f3ae54d3744c9f11be8184d6b2e, type: 3}
+  - {fileID: 21300000, guid: 7f741ec0f41a4664eb14eb18a542387b, type: 3}
   fullHealthSprite: {fileID: 1146510666235300713, guid: 862b40d28afa3c94fbc03f6652069a5e, type: 3}
   halfHealthSprite: {fileID: -8234513845462684532, guid: 862b40d28afa3c94fbc03f6652069a5e, type: 3}
   noHealthSprite: {fileID: -3233218061899519303, guid: 862b40d28afa3c94fbc03f6652069a5e, type: 3}
@@ -12875,11 +12875,11 @@ MonoBehaviour:
     actionToInvoke: CollectCoin
     relevantValue: 0
   - tile: {fileID: 11400000, guid: dd2f434f6f935af49a700f1bdc61b9fa, type: 2}
-    actionToInvoke: TakeDamage
-    relevantValue: -2
+    actionToInvoke: Heal
+    relevantValue: 2
   - tile: {fileID: 11400000, guid: 093337ca37a82274499d7ccae9f66107, type: 2}
-    actionToInvoke: TakeDamage
-    relevantValue: -1
+    actionToInvoke: Heal
+    relevantValue: 1
   - tile: {fileID: 11400000, guid: 2e0076c80bcebeb448f9120aa27c3249, type: 2}
     actionToInvoke: TakeDamage
     relevantValue: 2
@@ -13107,6 +13107,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   rb: {fileID: 6952628394063714502}
+  tileLogic: {fileID: 2077040796}
   animator: {fileID: 6952628394063714362}
 --- !u!4 &6952628394164458868
 Transform:

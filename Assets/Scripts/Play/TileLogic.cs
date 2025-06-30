@@ -59,6 +59,15 @@ public class TileLogic : MonoBehaviour
                 StartCoroutine(SpikeCooldown());
             }
         };
+
+        delegateLookup["Heal"] = (tile, tilemap, cellPos, invoker, value) =>
+        {
+            
+            invoker.Heal((int)value, tilemap, cellPos);
+            isSpikeOnCooldown = true;
+            StartCoroutine(SpikeCooldown());
+            
+        };
     }
 
     IEnumerator SpikeCooldown()
