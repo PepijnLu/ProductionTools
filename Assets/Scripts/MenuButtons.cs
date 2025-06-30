@@ -25,6 +25,11 @@ public class MenuButtons : MonoBehaviour
         SaveAndLoad.instance.SaveLevel(SceneData.loadedLevelName);
     }
 
+    public void QuitGame()
+    {
+        Application.Quit();
+    }
+
     public void SetMenuToLoad(string _menuToLoad)
     {
         SceneData.menuToLoad = _menuToLoad;

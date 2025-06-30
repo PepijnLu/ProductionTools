@@ -3,7 +3,6 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Tilemaps;
-using UnityEngine.UI;
 
 public class LevelBuilder : MonoBehaviour
 {

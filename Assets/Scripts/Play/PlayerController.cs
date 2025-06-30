@@ -1,7 +1,5 @@
 using System;
-using System.Runtime.InteropServices;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 
 public class PlayerController : MonoBehaviour, IInvoker
